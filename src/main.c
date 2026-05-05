@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "raylib.h"
-#include "/home/viky/Desktop/code/gameaed/MangueScience/include/resource_dir.h"	
+#include "resource_dir.h"	
 
 
 //notas
@@ -106,8 +106,30 @@ void deleteeverything(balls** head, balls** tail){
 	}
 }
 
+//movimento das notas
+void ballmovement(balls* head){
 
+	if(head->dir[0]){
 
+		head->posy -= 1;
+
+	}
+	if(head->dir[1]){
+
+		head->posy += 1;
+
+	}
+	if(head->dir[2]){
+
+		head->posx += 1;
+
+	}
+	if(head->dir[3]){
+
+		head->posx -= 1;
+
+	}
+}
 
 
 
@@ -211,7 +233,9 @@ int main ()
 
 		DrawTexture(wabbit, pposx, pposy, WHITE);
 
-		DrawTexture(head->sprite, 100, 100, WHITE);
+		DrawTexture(head->sprite, head->posx, head->posy, WHITE);
+
+		ballmovement(head);
 
 		if(head->dir[0])DrawText("1000",400, 400, 20, WHITE);
 		if(head->dir[1])DrawText("0100",400, 400, 20, WHITE);
