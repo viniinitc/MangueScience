@@ -8,14 +8,15 @@
 typedef struct balls{
 
 	int type;
-	//qual direcao ele ta andando, por exemplo se ele tiver indo de baixo pra cima a array ficaria {1,0,0,0} ja que UP eh o primeiro da ordem
+	//1 - up; 2 - down; 3 - right; 4 - left
 	//quando vcs acharam que precisar mudar algo na lista nao esquecam de mudar na funcao de inicializacao
-	//ORDEM DE DIRECOES UP DOWN RIGHT LEFT, TENTEM NAO MUDAR ISSO
-	int dir[4];
+	//ORDEM DE DIRECOES UP DOWN RIGHT LEFT
+	int dir;
 	float posx;
 	float posy;
 	Texture2D sprite;
 	struct balls* next;
+	struct balls* prev;
 
 }balls;
 
@@ -25,39 +26,21 @@ typedef struct songs{
 	int qntbeats;
 
 }songs;
-void getdirectionofball(int* array){
+void getdirectionofball(int* val){
 
 	int dir = GetRandomValue(1,4);
 	
 
-	if(dir = 1) {
-		array[0] = 1;
-		array[1] = 0;
-		array[2] = 0;
-		array[3] = 0;
-	}
-	if(dir = 2) {
-		array[0] = 0;
-		array[1] = 1;
-		array[2] = 0;
-		array[3] = 0;
-	}
-	if(dir = 3) {
-		array[0] = 0;
-		array[1] = 0;
-		array[2] = 1;
-		array[3] = 0;
-	}
-	if(dir = 4){
-		array[0] = 0;
-		array[1] = 0;
-		array[2] = 0;
-		array[3] = 1;
-	}
+	*val = dir;
 
 
 
 }
+
+void moveball(float *posx, float* posy){
+
+}
+
 
 void createnextball(balls** head,balls** tail, int type,Texture2D sprite, float posx, float posy){
 
@@ -68,12 +51,13 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite, float 
 		(*head)->next = NULL;
 		(*head)->type = type;
 
-		getdirectionofball((*head)->dir);
+		getdirectionofball(&(*head)->dir);
 		
 		(*head)->posx = posx;
 		(*head)->posy = posy;
 		(*head)->sprite = sprite;
 		*tail = *head;
+		(*head)->prev = NULL;
 		return;
 	}
 
@@ -82,12 +66,13 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite, float 
 	if(n->next == NULL) return;
 	n->next->type = type;
 	
-	getdirectionofball(n->next->dir);
+	getdirectionofball(&(n->next->dir));
 	
 	n->next->posx = posx;
 	n->next->posy = posy;
 	n->next->sprite = sprite;
 	n->next->next = NULL;
+	n->next->prev = n;
 	*tail = n->next;
 
 }
@@ -123,6 +108,8 @@ int main ()
 	InitAudioDevice();
 
 
+	int test[2];
+
 	//tamanho da tela
 	int screenheight = GetScreenHeight();
 	int screenwidth = GetScreenWidth();
@@ -133,13 +120,14 @@ int main ()
 	//definicao de musicas
 	songs praiera;
 	praiera.musica = LoadMusicStream("praiera.mp3");
-	praiera.qntbeats = 452;
+	praiera.qntbeats = 452; //tentar fazer com que isso seja relacionado com a quantidade de tempo da musica GetMusicTimeLenght();
 	PlayMusicStream(praiera.musica);
 	SetMusicVolume(praiera.musica, 1.0);
 	// musica 1 acima
 
 	balls* head = NULL;
 	balls* tail = NULL;
+	balls* aux = NULL;
 
 	
 
@@ -164,6 +152,8 @@ int main ()
 	int right = 0;
 	int left = 0;
 
+
+	aux = head;
 	// game loop
 	while (!WindowShouldClose())		
 	{
@@ -196,6 +186,8 @@ int main ()
 			up = 0;
 		}
 
+		if(IsKeyPressed(KEY_SPACE) && aux->next != NULL ) aux = aux->next;
+
 
 		BeginDrawing();
 
@@ -211,12 +203,13 @@ int main ()
 
 		DrawTexture(wabbit, pposx, pposy, WHITE);
 
-		DrawTexture(head->sprite, 100, 100, WHITE);
+		
 
-		if(head->dir[0])DrawText("1000",400, 400, 20, WHITE);
-		if(head->dir[1])DrawText("0100",400, 400, 20, WHITE);
-		if(head->dir[2])DrawText("0010",400, 400, 20, WHITE);
-		if(head->dir[3])DrawText("0001",400, 400, 20, WHITE);
+		if(aux->dir == 1)DrawText("cima",400, 400, 20, WHITE);
+		if(aux->dir == 2)DrawText("baixo",400, 400, 20, WHITE);
+		if(aux->dir == 3)DrawText("direita",400, 400, 20, WHITE);
+		if(aux->dir == 4)DrawText("esquerda",400, 400, 20, WHITE);
+
 
 		// posicao onde o jogador vai pegar as notas
 		if(up)DrawRectangle(pposx, pposy - 20, 10, 2, RED);
