@@ -19,10 +19,10 @@ endif
 # #############################################
 
 ifeq ($(origin CC), default)
-  CC = gcc
+  CC = clang
 endif
 ifeq ($(origin CXX), default)
-  CXX = g++
+  CXX = clang++
 endif
 ifeq ($(origin AR), default)
   AR = ar
@@ -46,61 +46,62 @@ ifeq ($(config),debug_x64)
 TARGETDIR = bin/Debug
 TARGET = $(TARGETDIR)/libraylib.a
 OBJDIR = obj/x64/Debug/raylib
-DEFINES += -DDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33 -D_GLFW_X11
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g
-ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64
+DEFINES += -DDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -g -Wno-deprecated-declarations
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -g -Wno-deprecated-declarations
+ALL_LDFLAGS += $(LDFLAGS) -m64
 
 else ifeq ($(config),debug_x86)
 TARGETDIR = bin/Debug
 TARGET = $(TARGETDIR)/libraylib.a
 OBJDIR = obj/x86/Debug/raylib
-DEFINES += -DDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33 -D_GLFW_X11
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -g
-ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32
+DEFINES += -DDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -g -Wno-deprecated-declarations
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -g -Wno-deprecated-declarations
+ALL_LDFLAGS += $(LDFLAGS) -m32
 
 else ifeq ($(config),debug_arm64)
 TARGETDIR = bin/Debug
 TARGET = $(TARGETDIR)/libraylib.a
 OBJDIR = obj/ARM64/Debug/raylib
-DEFINES += -DDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33 -D_GLFW_X11
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -g
+DEFINES += -DDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g -Wno-deprecated-declarations
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -g -Wno-deprecated-declarations
 ALL_LDFLAGS += $(LDFLAGS)
 
 else ifeq ($(config),release_x64)
 TARGETDIR = bin/Release
 TARGET = $(TARGETDIR)/libraylib.a
 OBJDIR = obj/x64/Release/raylib
-DEFINES += -DNDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33 -D_GLFW_X11
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2
-ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib64 -m64 -s
+DEFINES += -DNDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -Wno-deprecated-declarations
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m64 -O2 -Wno-deprecated-declarations
+ALL_LDFLAGS += $(LDFLAGS) -m64
 
 else ifeq ($(config),release_x86)
 TARGETDIR = bin/Release
 TARGET = $(TARGETDIR)/libraylib.a
 OBJDIR = obj/x86/Release/raylib
-DEFINES += -DNDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33 -D_GLFW_X11
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -O2
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -O2
-ALL_LDFLAGS += $(LDFLAGS) -L/usr/lib32 -m32 -s
+DEFINES += -DNDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -m32 -O2 -Wno-deprecated-declarations
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -m32 -O2 -Wno-deprecated-declarations
+ALL_LDFLAGS += $(LDFLAGS) -m32
 
 else ifeq ($(config),release_arm64)
 TARGETDIR = bin/Release
 TARGET = $(TARGETDIR)/libraylib.a
 OBJDIR = obj/ARM64/Release/raylib
-DEFINES += -DNDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33 -D_GLFW_X11
-ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2
-ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O2
-ALL_LDFLAGS += $(LDFLAGS) -s
+DEFINES += -DNDEBUG -DPLATFORM_DESKTOP -DGRAPHICS_API_OPENGL_33
+ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2 -Wno-deprecated-declarations
+ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O2 -Wno-deprecated-declarations
+ALL_LDFLAGS += $(LDFLAGS)
 
 endif
 
 # Per File Configurations
 # #############################################
 
+PERFILE_FLAGS_0 = $(ALL_CFLAGS) -x objective-c
 
 # File sets
 # #############################################
@@ -193,7 +194,7 @@ $(OBJDIR)/rcore.o: build/external/raylib-master/src/rcore.c
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/rglfw.o: build/external/raylib-master/src/rglfw.c
 	@echo "$(notdir $<)"
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+	$(SILENT) $(CC) $(PERFILE_FLAGS_0) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/rmodels.o: build/external/raylib-master/src/rmodels.c
 	@echo "$(notdir $<)"
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
