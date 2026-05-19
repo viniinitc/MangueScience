@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "raylib.h"
-#include "resource_dir.h"	
+#include "/home/viky/Desktop/code/gameaed/MangueScience/include/resource_dir.h"	
 
 
 //notas
@@ -81,7 +81,7 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
 		}
 		if((*head)->dir == 2){
 			posx = GetScreenWidth()/2;
-			posy = GetScreenHeight;
+			posy = GetScreenHeight();
 		}
 		if((*head)->dir == 3){
 			posx = GetScreenWidth();
@@ -120,7 +120,7 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
 		}
 		if(n->next->dir == 2){
 			posx = GetScreenWidth()/2;
-			posy = GetScreenHeight;
+			posy = GetScreenHeight();
 		}
 		if(n->next->dir == 3){
 			posx = GetScreenWidth();
@@ -159,28 +159,26 @@ void deleteeverything(balls** head, balls** tail){
 }
 
 //movimento das notas
-void ballmovement(balls* head){
+void moveballs(balls** head){
 
-	if(head->dir[0]){
-
-		head->posy -= 1;
-
-	}
-	if(head->dir[1]){
-
-		head->posy += 1;
+	if((*head)->dir == 1){
+		(*head)->rect.y++;
+		(*head)->vect.y++;
 
 	}
-	if(head->dir[2]){
-
-		head->posx += 1;
-
+	if((*head)->dir == 2){
+		(*head)->rect.y--;
+		(*head)->vect.y--;
 	}
-	if(head->dir[3]){
-
-		head->posx -= 1;
-
+	if((*head)->dir == 3){
+		(*head)->rect.x++;
+		(*head)->vect.x++;
 	}
+	if((*head)->dir == 4){
+		(*head)->rect.x--;
+		(*head)->vect.x--;
+	}
+
 }
 
 
@@ -291,7 +289,7 @@ int main ()
 
 
 		if(n->prev != NULL && CheckCollisionRecs(n->rect,n->prev->rect)){
-			moveball(n);
+			moveballs(&n);
 		}
 
 		BeginDrawing();
@@ -308,13 +306,9 @@ int main ()
 
 		DrawTexture(wabbit, pposx, pposy, WHITE);
 
-<<<<<<< HEAD
-		
-=======
-		DrawTexture(head->sprite, head->posx, head->posy, WHITE);
+		DrawTexture(head->sprite, head->vect.x, head->vect.y, WHITE);
 
-		ballmovement(head);
->>>>>>> bc9ed5293bf52d9e5e4841a96a5e2f06fbc78683
+		moveballs(head);
 
 		if(aux->dir == 1)DrawText("cima",400, 400, 20, WHITE);
 		if(aux->dir == 2)DrawText("baixo",400, 400, 20, WHITE);
