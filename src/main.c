@@ -84,11 +84,11 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
 			posy = GetScreenHeight();
 		}
 		if((*head)->dir == 3){
-			posx = GetScreenWidth();
+			posx = 0;
 			posy = GetScreenHeight()/2;
 		}
 		if((*head)->dir == 4){
-			posx = 0;
+			posx = GetScreenWidth();
 			posy = GetScreenHeight()/2;
 		}
 		
@@ -123,11 +123,11 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
 			posy = GetScreenHeight();
 		}
 		if(n->next->dir == 3){
-			posx = GetScreenWidth();
+			posx = 0;
 			posy = GetScreenHeight()/2;
 		}
 		if(n->next->dir == 4){
-			posx = 0;
+			posx = GetScreenWidth();
 			posy = GetScreenHeight()/2;
 		}
 
@@ -217,15 +217,11 @@ int main ()
 	balls* aux = NULL;
 	balls* n = NULL;
 
-	
-
 	for(int i = 0; i < praiera.qntbeats; i++){
 
 		createnextball(&head,&tail, 0,LoadTexture("balltest.png"));
 
 	}
-
-	
 
 	//textura do jogador
 	Texture wabbit = LoadTexture("wabbit_alpha.png");
@@ -302,6 +298,26 @@ int main ()
 			moveballs(&n);
 		}
 
+		if(n != NULL && CheckCollisionRecs(n->rect, playerrect)){
+			
+			balls* del = n;
+
+
+			n->next->prev = n->prev;
+			n->prev->next = n->next;
+			
+			if(head == n) {
+				head = n->next;
+				aux = n->next;
+			}
+
+			n = n->next;
+			free(del);
+			
+			
+
+		} 
+
 		BeginDrawing();
 
 		UpdateMusicStream(praiera.musica);
@@ -313,10 +329,9 @@ int main ()
 
 		if(IsMusicStreamPlaying(praiera.musica))DrawText("aeu",300,300, 20, WHITE );
 
-
 		
 
-		DrawTexture(head->sprite, head->vect.x, head->vect.y, WHITE);
+		if((n->vect.x < screenwidth - 100 && n->vect.x > 0 + 100) && (n->vect.y > 0 + 100 && n->vect.y < screenheight-100))DrawTexture(head->sprite, head->vect.x, head->vect.y, WHITE);
 
 		moveballs(&head);
 
@@ -325,12 +340,13 @@ int main ()
 		if(aux->dir == 3)DrawText("direita",400, 400, 20, WHITE);
 		if(aux->dir == 4)DrawText("esquerda",400, 400, 20, WHITE);
 
-		
-		DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
+		// nota se mexendo
+		// fazer com que ela seja destruida quando chegar perto do jogador
+		if((n->vect.x < screenwidth - 100 && n->vect.x > 0 + 100) && (n->vect.y > 0 + 100 && n->vect.y < screenheight-100))DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
 
+		
 		// posicao onde o jogador vai pegar as notas
 
-	
 
 		DrawCircle(pposx, pposy, 100, YELLOW);
 		DrawCircle(pposx, pposy, 50, GREEN);
