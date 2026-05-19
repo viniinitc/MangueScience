@@ -308,7 +308,7 @@ int main ()
 
 		DrawTexture(head->sprite, head->vect.x, head->vect.y, WHITE);
 
-		moveballs(head);
+		moveballs(&head);
 
 		if(aux->dir == 1)DrawText("cima",400, 400, 20, WHITE);
 		if(aux->dir == 2)DrawText("baixo",400, 400, 20, WHITE);

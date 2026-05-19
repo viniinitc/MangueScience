@@ -56,3 +56,5 @@ dkms.conf
 MangueScience.make
 raylib.make
 bin/Debug/MangueScience
+MangueScience.make
+raylib.make
