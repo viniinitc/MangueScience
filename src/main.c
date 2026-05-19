@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "raylib.h"
-#include "/home/viky/Desktop/code/gameaed/MangueScience/include/resource_dir.h"	
+#include "resource_dir.h"	
 
 
 //notas
@@ -284,6 +284,16 @@ int main ()
 
 		if(IsKeyPressed(KEY_SPACE) && aux->next != NULL ) aux = aux->next;
 
+		if(IsMusicStreamPlaying(praiera.musica)) {
+
+			if(IsKeyPressed(KEY_ONE))PauseMusicStream(praiera.musica);
+
+		} else {
+
+			if(IsKeyPressed(KEY_ONE))ResumeMusicStream(praiera.musica);
+
+		}
+
 
 		if(IsKeyPressed(KEY_BACKSPACE) && aux->prev != NULL) aux = aux->prev;
 
@@ -304,7 +314,7 @@ int main ()
 		if(IsMusicStreamPlaying(praiera.musica))DrawText("aeu",300,300, 20, WHITE );
 
 
-		DrawTexture(wabbit, pposx, pposy, WHITE);
+		
 
 		DrawTexture(head->sprite, head->vect.x, head->vect.y, WHITE);
 
@@ -319,12 +329,24 @@ int main ()
 		DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
 
 		// posicao onde o jogador vai pegar as notas
-		if(up)DrawRectangle(pposx, pposy - 20, 10, 2, RED);
-		if(down)DrawRectangle(pposx, pposy + 60, 10, 2, RED);
-		if(right)DrawRectangle(pposx + 50, pposy, 2, 10, RED);
-		if(left)DrawRectangle(pposx - 20, pposy, 2, 10, RED);
-		
+
 	
+
+		DrawCircle(pposx, pposy, 100, YELLOW);
+		DrawCircle(pposx, pposy, 50, GREEN);
+		DrawCircle(pposx, pposy, 25, BLUE);
+
+		DrawTexture(wabbit, pposx, pposy, WHITE);
+
+
+		if(up)DrawCircle(pposx, pposy - 60, 10, RED);
+		if(down)DrawCircle(pposx, pposy + 60, 10, RED);
+		if(right)DrawCircle(pposx + 60, pposy , 10, RED);
+		if(left)DrawCircle(pposx - 60, pposy, 10, RED);
+		
+
+		DrawCircleV(GetMousePosition(), 4, DARKGRAY);
+		DrawText(TextFormat("X: %i  Y: %i",GetMouseX(),GetMouseY()),GetMousePosition().x, GetMousePosition().y, 20, RED);
 		EndDrawing();
 	}
 
