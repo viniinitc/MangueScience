@@ -355,15 +355,23 @@ int main (){
 
 
 			if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check != 0){
-                    PlaySound(hit);
-                    n = n->next;
+                
+                n = n->next;
             }
+
+			if(n != NULL && CheckCollisionRecs(n->rect, playertablet) && n->check==0){
+
+				PlaySound(hit);
+				n->check++;
+			}
 
 			if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check == 0){
 				n->check++;
 				n = n->next;
 					
             } 
+
+			
             
 
 
