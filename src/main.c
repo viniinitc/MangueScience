@@ -23,6 +23,7 @@ typedef struct balls{
     //ORDEM DE DIRECOES UP DOWN RIGHT LEFT
     int dir;
     Rectangle rect;
+	int check;
     Texture2D sprite;
     Vector2 vect;
     struct balls* next;
@@ -43,27 +44,6 @@ void getdirectionofball(int* val){
 
 }
 
-void moveball(balls** head){
-
-    if((*head)->dir == 1){
-        (*head)->rect.y++;
-        (*head)->vect.y++;
-
-    }
-    if((*head)->dir == 2){
-        (*head)->rect.y--;
-        (*head)->vect.y--;
-    }
-    if((*head)->dir == 3){
-        (*head)->rect.x++;
-        (*head)->vect.x++;
-    }
-    if((*head)->dir == 4){
-        (*head)->rect.x--;
-        (*head)->vect.x--;
-    }
-
-}
 
 
 void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
@@ -105,6 +85,7 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
         (*head)->sprite = sprite;
         (*head)->vect.x = posx;
         (*head)->vect.y = posy;
+		(*head)->check = 0;
         *tail = *head;
         (*head)->prev = NULL;
         return;
@@ -145,6 +126,7 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
     n->next->vect.x = posx;
     n->next->vect.y = posy;
     n->next->next = NULL;
+	n->next->check = 0;
     n->next->prev = n;
     *tail = n->next;
 
@@ -170,24 +152,26 @@ void deleteeverything(balls** head, balls** tail){
 void moveballs(balls** head){
 
     if((*head)->dir == 1){
-        (*head)->rect.y++;
-        (*head)->vect.y++;
+            (*head)->rect.y+=3;
+            (*head)->vect.y+=3;
 
     }
     if((*head)->dir == 2){
-        (*head)->rect.y--;
-        (*head)->vect.y--;
+            (*head)->rect.y-=3;
+            (*head)->vect.y-=3;
     }
     if((*head)->dir == 3){
-        (*head)->rect.x++;
-        (*head)->vect.x++;
+            (*head)->rect.x-=3;
+            (*head)->vect.x-=3;
     }
     if((*head)->dir == 4){
-        (*head)->rect.x--;
-        (*head)->vect.x--;
+            (*head)->rect.x+=3;
+            (*head)->vect.x+=3;
     }
 
 }
+
+
 
 
 
@@ -227,6 +211,8 @@ int main (){
     int selectedSong = 0;
     int totalSongs = 3;
 
+	Sound hit = LoadSound("hit.mp3");
+
     balls* head = NULL;
     balls* tail = NULL;
     balls* aux = NULL;
@@ -259,7 +245,7 @@ int main (){
     n = head;
 
     bool menuButtonClicked = false;
-
+	Rectangle playertablet;
     // game loop
     while (!WindowShouldClose()){
 
@@ -328,6 +314,30 @@ int main (){
                 up = 0;
             }
 
+
+
+
+
+            playertablet.height = 30;
+            playertablet.width = 30;
+
+            if(up){
+
+                    playertablet.x = pposx;
+                    playertablet.y = pposy - 60;
+
+            }else if(down){
+                    playertablet.x = pposx;
+                    playertablet.y = pposy + 80;
+            }else if(right){
+                    playertablet.x = pposx + 80;
+                    playertablet.y = pposy - 10;
+            }else{
+                    playertablet.x = pposx -60;
+                    playertablet.y = pposy - 10;
+            }
+
+
             if(IsKeyPressed(KEY_SPACE) && aux != NULL && aux->next != NULL) aux = aux->next;
 
             if(IsKeyPressed(KEY_BACKSPACE) && aux != NULL && aux->prev != NULL) aux = aux->prev;
@@ -343,27 +353,27 @@ int main (){
                 moveballs(&n);
             }
 
-            // nota se mexendo e sendo destruida com segurança quando chega perto/colide com o jogador
-            if(n != NULL && CheckCollisionRecs(n->rect, playerrect)){
-                
-                balls* del = n;
 
-                if (n->next != NULL) n->next->prev = n->prev;
-                if (n->prev != NULL) n->prev->next = n->next;
-                
-                if(head == n) {
-                    head = n->next;
-                    aux = n->next;
-                }
+			if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check != 0){
+                    PlaySound(hit);
+                    n = n->next;
+            }
 
-                n = n->next;
-                free(del);
+			if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check == 0){
+				n->check++;
+				n = n->next;
+					
             } 
+            
+
+
+            // nota se mexendo e sendo destruida com segurança quando chega perto/colide com o jogador
+            
+
+
 
             UpdateMusicStream(playlist[selectedSong].musica);
-            if (head != NULL) {
-                moveballs(&head);
-            }
+            
         } 
 
 
@@ -400,6 +410,7 @@ int main (){
                     DrawText(TextFormat("Tocando: %s", playlist[selectedSong].title), 300, 300, 20, GREEN);
                 }
 
+
                 // Círculos concêntricos e alvos redondos no meio da tela
                 DrawCircle(pposx, pposy, 100, YELLOW);
                 DrawCircle(pposx, pposy, 50, GREEN);
@@ -407,9 +418,8 @@ int main (){
 
                 DrawTexture(wabbit, pposx, pposy, WHITE);
 
-                if (head != NULL) {
-                    DrawTexture(head->sprite, head->vect.x, head->vect.y, WHITE);
-                }
+
+				moveballs(&n);				
 
                 if(aux != NULL) {
                     if(aux->dir == 1) DrawText("cima", 400, 400, 20, WHITE);
@@ -418,21 +428,26 @@ int main (){
                     if(aux->dir == 4) DrawText("esquerda", 400, 400, 20, WHITE);
                 }
 
-                    
-                if (n != NULL) {
-                    DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
-                }
+				if((n->vect.x < screenwidth - 100 && n->vect.x > 0 + 100) && (n->vect.y > 0 + 100 && n->vect.y < screenheight-100) && n->check == 0){
+
+					DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
+
+					DrawRectangleRec(n->rect, BLUE);
+					
+				}                
 
                 // posicao onde o jogador vai pegar as notas (alvos vermelhos)
-                if(up) DrawCircle(pposx, pposy - 60, 10, RED);
-                if(down) DrawCircle(pposx, pposy + 60, 10, RED);
-                if(right) DrawCircle(pposx + 60, pposy , 10, RED);
-                if(left) DrawCircle(pposx - 60, pposy, 10, RED);
+                if(up)DrawRectangleRec(playertablet, RED);
+                if(down)DrawRectangleRec(playertablet, RED);
+                if(right)DrawRectangleRec(playertablet, RED);
+                if(left)DrawRectangleRec(playertablet, RED);
+
 
                 // Debug posicional do mouse na tela
                 DrawCircleV(GetMousePosition(), 4, DARKGRAY);
                 DrawText(TextFormat("X: %i  Y: %i",GetMouseX(),GetMouseY()),GetMousePosition().x, GetMousePosition().y, 20, RED);
             }
+
 
         EndDrawing();
     }
