@@ -315,6 +315,38 @@ int main (){
             }
 
 
+            if(IsKeyReleased(KEY_UP)) {
+                down = 0;
+                right = 0;
+                left = 0;
+                up = 0;
+            }
+
+            if(IsKeyReleased(KEY_DOWN)) {
+                down = 0;
+                right = 0;
+                left = 0;
+                up = 0;
+            }
+
+            if(IsKeyReleased(KEY_RIGHT)) {
+                down = 0;
+                right = 0;
+                left = 0;
+                up = 0;
+            }
+
+            if(IsKeyReleased(KEY_LEFT)) {
+                down = 0;
+                right = 0;
+                left = 0;
+                up = 0;
+            }
+
+
+            
+
+            
 
 
 
