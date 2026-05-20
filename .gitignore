@@ -58,3 +58,4 @@ raylib.make
 bin/Debug/MangueScience
 MangueScience.make
 raylib.make
+.DS_Store

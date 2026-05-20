@@ -1,379 +1,452 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "raylib.h"
-#include "resource_dir.h"	
+#include "resource_dir.h"   
 
+typedef enum GameScreen {
+    SCREEN_MENU,
+    SCREEN_SONG_SELECT, 
+    SCREEN_GAMEPLAY 
+} GameScreen;
+
+GameScreen currentScreen = SCREEN_MENU;
+
+extern bool DrawMenu(void);
 
 //notas
 typedef struct balls{
 
-	int type;
-	//1 - up; 2 - down; 3 - right; 4 - left
-	//quando vcs acharam que precisar mudar algo na lista nao esquecam de mudar na funcao de inicializacao
-	//ORDEM DE DIRECOES UP DOWN RIGHT LEFT
-	int dir;
-	Rectangle rect;
-	Texture2D sprite;
-	Vector2 vect;
-	struct balls* next;
-	struct balls* prev;
+    int type;
+    //1 - up; 2 - down; 3 - right; 4 - left
+    //quando vcs acharam que precisar mudar algo na lista nao esquecam de mudar na funcao de inicializacao
+    //ORDEM DE DIRECOES UP DOWN RIGHT LEFT
+    int dir;
+    Rectangle rect;
+    Texture2D sprite;
+    Vector2 vect;
+    struct balls* next;
+    struct balls* prev;
 
 }balls;
 
 typedef struct songs{
-
-	Music musica;
-	int qntbeats;
-
+    Music musica;
+    int qntbeats;
+    const char *title;
 }songs;
+
 void getdirectionofball(int* val){
 
-	int dir = GetRandomValue(1,4);
-	
-
-	*val = dir;
-
-
+    int dir = GetRandomValue(1,4);
+    *val = dir;
 
 }
 
 void moveball(balls** head){
 
-	if((*head)->dir == 1){
-		(*head)->rect.y++;
-		(*head)->vect.y++;
+    if((*head)->dir == 1){
+        (*head)->rect.y++;
+        (*head)->vect.y++;
 
-	}
-	if((*head)->dir == 2){
-		(*head)->rect.y--;
-		(*head)->vect.y--;
-	}
-	if((*head)->dir == 3){
-		(*head)->rect.x++;
-		(*head)->vect.x++;
-	}
-	if((*head)->dir == 4){
-		(*head)->rect.x--;
-		(*head)->vect.x--;
-	}
+    }
+    if((*head)->dir == 2){
+        (*head)->rect.y--;
+        (*head)->vect.y--;
+    }
+    if((*head)->dir == 3){
+        (*head)->rect.x++;
+        (*head)->vect.x++;
+    }
+    if((*head)->dir == 4){
+        (*head)->rect.x--;
+        (*head)->vect.x--;
+    }
 
 }
 
 
 void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
 
-	if(*head == NULL) {
+    if(*head == NULL) {
 
 
-		*head = (balls*)malloc(sizeof(balls));
-		if (*head == NULL) return;
-		(*head)->next = NULL;
-		(*head)->type = type;
+        *head = (balls*)malloc(sizeof(balls));
+        if (*head == NULL) return;
+        (*head)->next = NULL;
+        (*head)->type = type;
 
-		int posx;
-		int posy;
+        int posx;
+        int posy;
 
-		getdirectionofball(&(*head)->dir);
-		
-		if((*head)->dir == 1){
-			posx = GetScreenWidth()/2;
-			posy = 0;
-		}
-		if((*head)->dir == 2){
-			posx = GetScreenWidth()/2;
-			posy = GetScreenHeight();
-		}
-		if((*head)->dir == 3){
-			posx = 0;
-			posy = GetScreenHeight()/2;
-		}
-		if((*head)->dir == 4){
-			posx = GetScreenWidth();
-			posy = GetScreenHeight()/2;
-		}
-		
-		(*head)->rect.x = posx;
-		(*head)->rect.y = posy;
-		(*head)->rect.height = sprite.height;
-		(*head)->rect.width = sprite.width;
-		(*head)->sprite = sprite;
-		(*head)->vect.x = posx;
-		(*head)->vect.y = posy;
-		*tail = *head;
-		(*head)->prev = NULL;
-		return;
-	}
+        getdirectionofball(&(*head)->dir);
+        
+        if((*head)->dir == 1){
+            posx = GetScreenWidth()/2;
+            posy = 0;
+        }
+        if((*head)->dir == 2){
+            posx = GetScreenWidth()/2;
+            posy = GetScreenHeight();
+        }
+        if((*head)->dir == 3){
+            posx = GetScreenWidth();
+            posy = GetScreenHeight()/2;
+        }
+        if((*head)->dir == 4){
+            posx = 0;
+            posy = GetScreenHeight()/2;
+        }
+        
+        (*head)->rect.x = posx;
+        (*head)->rect.y = posy;
+        (*head)->rect.height = sprite.height;
+        (*head)->rect.width = sprite.width;
+        (*head)->sprite = sprite;
+        (*head)->vect.x = posx;
+        (*head)->vect.y = posy;
+        *tail = *head;
+        (*head)->prev = NULL;
+        return;
+    }
 
-	balls* n = *tail;
-	n->next = (balls*)malloc(sizeof(balls));
-	if(n->next == NULL) return;
-	n->next->type = type;
-	
-	getdirectionofball(&(n->next->dir));
-	
-	int posx;
-	int posy;
+    balls* n = *tail;
+    n->next = (balls*)malloc(sizeof(balls));
+    if(n->next == NULL) return;
+    n->next->type = type;
+    
+    getdirectionofball(&(n->next->dir));
+    
+    int posx;
+    int posy;
 
-	if(n->next->dir == 1){
-			posx = GetScreenWidth()/2;
-			posy = 0;
-		}
-		if(n->next->dir == 2){
-			posx = GetScreenWidth()/2;
-			posy = GetScreenHeight();
-		}
-		if(n->next->dir == 3){
-			posx = 0;
-			posy = GetScreenHeight()/2;
-		}
-		if(n->next->dir == 4){
-			posx = GetScreenWidth();
-			posy = GetScreenHeight()/2;
-		}
+    if(n->next->dir == 1){
+            posx = GetScreenWidth()/2;
+            posy = 0;
+        }
+        if(n->next->dir == 2){
+            posx = GetScreenWidth()/2;
+            posy = GetScreenHeight();
+        }
+        if(n->next->dir == 3){
+            posx = GetScreenWidth();
+            posy = GetScreenHeight()/2;
+        }
+        if(n->next->dir == 4){
+            posx = 0;
+            posy = GetScreenHeight()/2;
+        }
 
-	n->next->rect.x = posx;
-	n->next->rect.y = posy;
-	n->next->rect.height = sprite.height;
-	n->next->rect.width = sprite.width;
-	n->next->sprite = sprite;
-	n->next->vect.x = posx;
-	n->next->vect.y = posy;
-	n->next->next = NULL;
-	n->next->prev = n;
-	*tail = n->next;
+    n->next->rect.x = posx;
+    n->next->rect.y = posy;
+    n->next->rect.height = sprite.height;
+    n->next->rect.width = sprite.width;
+    n->next->sprite = sprite;
+    n->next->vect.x = posx;
+    n->next->vect.y = posy;
+    n->next->next = NULL;
+    n->next->prev = n;
+    *tail = n->next;
 
 }
 
 void deleteeverything(balls** head, balls** tail){
 
-	balls* n = *head;
+    balls* n = *head;
 
-	while(n != NULL){
+    while(n != NULL){
 
-		UnloadTexture(n->sprite);
-		balls* aux = n;
-		n = n->next;
-		free(aux);
+        //UnloadTexture(n->sprite);
+        balls* aux = n;
+        n = n->next;
+        free(aux);
 
-	}
+    }
+    *head = NULL;
+    *tail = NULL;
 }
 
 //movimento das notas
 void moveballs(balls** head){
 
-	if((*head)->dir == 1){
-		(*head)->rect.y++;
-		(*head)->vect.y++;
+    if((*head)->dir == 1){
+        (*head)->rect.y++;
+        (*head)->vect.y++;
 
-	}
-	if((*head)->dir == 2){
-		(*head)->rect.y--;
-		(*head)->vect.y--;
-	}
-	if((*head)->dir == 3){
-		(*head)->rect.x++;
-		(*head)->vect.x++;
-	}
-	if((*head)->dir == 4){
-		(*head)->rect.x--;
-		(*head)->vect.x--;
-	}
+    }
+    if((*head)->dir == 2){
+        (*head)->rect.y--;
+        (*head)->vect.y--;
+    }
+    if((*head)->dir == 3){
+        (*head)->rect.x++;
+        (*head)->vect.x++;
+    }
+    if((*head)->dir == 4){
+        (*head)->rect.x--;
+        (*head)->vect.x--;
+    }
 
 }
 
 
 
-int main ()
-{
-	
-	SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
+int main (){
+    
+    SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
 
-	SetRandomSeed(10);
-	
-	
-	InitWindow(1280, 800, "Hello Raylib");
-	InitAudioDevice();
-
-
-	int test[2];
-
-	//tamanho da tela
-	int screenheight = GetScreenHeight();
-	int screenwidth = GetScreenWidth();
-
-	SearchAndSetResourceDir("resources");
+    SetRandomSeed(10);
+    
+    
+    InitWindow(1280, 800, "Hello Raylib");
+    InitAudioDevice();
 
 
-	//definicao de musicas
-	songs praiera;
-	praiera.musica = LoadMusicStream("praiera.mp3");
-	praiera.qntbeats = 452; //tentar fazer com que isso seja relacionado com a quantidade de tempo da musica GetMusicTimeLenght();
-	PlayMusicStream(praiera.musica);
-	SetMusicVolume(praiera.musica, 1.0);
-	// musica 1 acima
+    int test[2];
 
-	balls* head = NULL;
-	balls* tail = NULL;
-	balls* aux = NULL;
-	balls* n = NULL;
+    //tamanho da tela
+    int screenheight = GetScreenHeight();
+    int screenwidth = GetScreenWidth();
 
-	for(int i = 0; i < praiera.qntbeats; i++){
+    SearchAndSetResourceDir("resources");
 
-		createnextball(&head,&tail, 0,LoadTexture("balltest.png"));
+    songs playlist[3];
 
-	}
+    playlist[0].musica = LoadMusicStream("praiera.mp3");
+    playlist[0].qntbeats = 452;
+    playlist[0].title = "Praiera - Chico Science & Nation Zumbi";
 
-	//textura do jogador
-	Texture wabbit = LoadTexture("wabbit_alpha.png");
+    playlist[1].musica = LoadMusicStream("maracatu_atomico.mp3");
+    playlist[1].qntbeats = 380;
+    playlist[1].title = "Maracatu Atomico";
 
-	//posicao do jogador
-	float pposx = screenwidth/2;
-	float pposy = screenheight/2;
+    playlist[2].musica = LoadMusicStream("da_lama_ao_caos.mp3");
+    playlist[2].qntbeats = 510;
+    playlist[2].title = "Da Lama ao Caos";
 
-	Rectangle playerrect;
+    int selectedSong = 0;
+    int totalSongs = 3;
 
-	playerrect.height = wabbit.height;
-	playerrect.width = wabbit.width;
-	playerrect.x = pposx;
-	playerrect.y = pposy;
+    balls* head = NULL;
+    balls* tail = NULL;
+    balls* aux = NULL;
+    balls* n = NULL;
 
-	//variaveis de onde o jogador vai apontar
-	int up = 0;
-	int down = 0;
-	int right = 0;
-	int left = 0;
+    Texture2D ballTexture = LoadTexture("balltest.png");
+    //textura do jogador
+    Texture wabbit = LoadTexture("wabbit_alpha.png");
+
+    //posicao do jogador
+    float pposx = screenwidth/2;
+    float pposy = screenheight/2;
+
+    Rectangle playerrect;
+
+    playerrect.height = wabbit.height;
+    playerrect.width = wabbit.width;
+    playerrect.x = pposx;
+    playerrect.y = pposy;
+
+    //variaveis de onde o jogador vai apontar
+    int up = 0;
+    int down = 0;
+    int right = 0;
+    int left = 0;
+
+    bool musicStarted = false;
+
+    aux = head;
+    n = head;
+
+    bool menuButtonClicked = false;
+
+    // game loop
+    while (!WindowShouldClose()){
+
+        if (currentScreen == SCREEN_MENU) {
+
+            if (IsKeyPressed(KEY_ENTER) || menuButtonClicked) {
+                currentScreen = SCREEN_SONG_SELECT;
+                menuButtonClicked = false;
+            }
+
+        } else if(currentScreen == SCREEN_SONG_SELECT){
+
+            if (IsKeyPressed(KEY_DOWN)) {
+                selectedSong = (selectedSong + 1) % totalSongs;
+            }
+            if (IsKeyPressed(KEY_UP)) {
+                selectedSong = (selectedSong - 1 + totalSongs) % totalSongs;
+            }
+
+            if (IsKeyPressed(KEY_ENTER)) {
+
+                deleteeverything(&head, &tail);
+
+                for(int i = 0; i < playlist[selectedSong].qntbeats; i++){
+                    createnextball(&head, &tail, 0, ballTexture);
+                }
+                aux = head;
+                n = head;
+                currentScreen = SCREEN_GAMEPLAY;
+            }
+
+        }
+        else if (currentScreen == SCREEN_GAMEPLAY) {
+            
+            if (!musicStarted) {
+                PlayMusicStream(playlist[selectedSong].musica);
+                SetMusicVolume(playlist[selectedSong].musica, 1.0);
+                musicStarted = true;            
+            }
+
+            if(IsKeyPressed(KEY_UP)) {
+                down = 0;
+                right = 0;
+                left = 0;
+                up = 1;
+            }
+
+            if(IsKeyPressed(KEY_DOWN)) {
+                down = 1;
+                right = 0;
+                left = 0;
+                up = 0;
+            }
+
+            if(IsKeyPressed(KEY_RIGHT)) {
+                down = 0;
+                right = 1;
+                left = 0;
+                up = 0;
+            }
+
+            if(IsKeyPressed(KEY_LEFT)) {
+                down = 0;
+                right = 0;
+                left = 1;
+                up = 0;
+            }
+
+            if(IsKeyPressed(KEY_SPACE) && aux != NULL && aux->next != NULL) aux = aux->next;
+
+            if(IsKeyPressed(KEY_BACKSPACE) && aux != NULL && aux->prev != NULL) aux = aux->prev;
+
+            // Mecânica de pausar a música integrada dinamicamente com a playlist
+            if(IsMusicStreamPlaying(playlist[selectedSong].musica)) {
+                if(IsKeyPressed(KEY_ONE)) PauseMusicStream(playlist[selectedSong].musica);
+            } else {
+                if(IsKeyPressed(KEY_ONE)) ResumeMusicStream(playlist[selectedSong].musica);
+            }
+
+            if(n != NULL && n->prev != NULL && CheckCollisionRecs(n->rect,n->prev->rect)){
+                moveballs(&n);
+            }
+
+            // nota se mexendo e sendo destruida com segurança quando chega perto/colide com o jogador
+            if(n != NULL && CheckCollisionRecs(n->rect, playerrect)){
+                
+                balls* del = n;
+
+                if (n->next != NULL) n->next->prev = n->prev;
+                if (n->prev != NULL) n->prev->next = n->next;
+                
+                if(head == n) {
+                    head = n->next;
+                    aux = n->next;
+                }
+
+                n = n->next;
+                free(del);
+            } 
+
+            UpdateMusicStream(playlist[selectedSong].musica);
+            if (head != NULL) {
+                moveballs(&head);
+            }
+        } 
 
 
-	aux = head;
-	n = head;
-	// game loop
-	while (!WindowShouldClose())		
-	{
+        BeginDrawing();
 
-		if(IsKeyPressed(KEY_UP)) {
-			down = 0;
-			right = 0;
-			left = 0;
-			up = 1;
-		}
+            if (currentScreen == SCREEN_MENU) {
+                menuButtonClicked = DrawMenu();
+            } 
+            else if(currentScreen == SCREEN_SONG_SELECT){
 
-		if(IsKeyPressed(KEY_DOWN)) {
-			down = 1;
-			right = 0;
-			left = 0;
-			up = 0;
-		}
+                ClearBackground(BLACK);
+                
+                DrawText("SELECIONE SUA MUSICA", GetScreenWidth()/2 - MeasureText("SELECIONE SUA MUSICA", 30)/2, 100, 30, RAYWHITE);
 
-		if(IsKeyPressed(KEY_RIGHT)) {
-			down = 0;
-			right = 1;
-			left = 0;
-			up = 0;
-		}
+                for (int i = 0; i < totalSongs; i++) {
+                    int posY = 250 + (i * 60);
+                    if (i == selectedSong) {
+                        DrawText(TextFormat("> %s <", playlist[i].title), 200, posY, 24, GOLD);
+                    } else {
+                        DrawText(playlist[i].title, 220, posY, 24, LIGHTGRAY);
+                    }
+                }
+                
+                DrawText("Use as SETAS para navegar e ENTER para confirmar", 200, 650, 20, GRAY);
 
-		if(IsKeyPressed(KEY_LEFT)) {
-			down = 0;
-			right = 0;
-			left = 1;
-			up = 0;
-		}
+            } 
+            else if (currentScreen == SCREEN_GAMEPLAY){
+                
+                ClearBackground(BLACK);
 
-		if(IsKeyPressed(KEY_SPACE) && aux->next != NULL ) aux = aux->next;
+                DrawText("Hello Raylib", 200,200,20,WHITE);
 
-		if(IsMusicStreamPlaying(praiera.musica)) {
+                if (IsMusicStreamPlaying(playlist[selectedSong].musica)) {
+                    DrawText(TextFormat("Tocando: %s", playlist[selectedSong].title), 300, 300, 20, GREEN);
+                }
 
-			if(IsKeyPressed(KEY_ONE))PauseMusicStream(praiera.musica);
+                // Círculos concêntricos e alvos redondos no meio da tela
+                DrawCircle(pposx, pposy, 100, YELLOW);
+                DrawCircle(pposx, pposy, 50, GREEN);
+                DrawCircle(pposx, pposy, 25, BLUE);
 
-		} else {
+                DrawTexture(wabbit, pposx, pposy, WHITE);
 
-			if(IsKeyPressed(KEY_ONE))ResumeMusicStream(praiera.musica);
+                if (head != NULL) {
+                    DrawTexture(head->sprite, head->vect.x, head->vect.y, WHITE);
+                }
 
-		}
+                if(aux != NULL) {
+                    if(aux->dir == 1) DrawText("cima", 400, 400, 20, WHITE);
+                    if(aux->dir == 2) DrawText("baixo", 400, 400, 20, WHITE);
+                    if(aux->dir == 3) DrawText("direita", 400, 400, 20, WHITE);
+                    if(aux->dir == 4) DrawText("esquerda", 400, 400, 20, WHITE);
+                }
 
+                    
+                if (n != NULL) {
+                    DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
+                }
 
-		if(IsKeyPressed(KEY_BACKSPACE) && aux->prev != NULL) aux = aux->prev;
+                // posicao onde o jogador vai pegar as notas (alvos vermelhos)
+                if(up) DrawCircle(pposx, pposy - 60, 10, RED);
+                if(down) DrawCircle(pposx, pposy + 60, 10, RED);
+                if(right) DrawCircle(pposx + 60, pposy , 10, RED);
+                if(left) DrawCircle(pposx - 60, pposy, 10, RED);
 
+                // Debug posicional do mouse na tela
+                DrawCircleV(GetMousePosition(), 4, DARKGRAY);
+                DrawText(TextFormat("X: %i  Y: %i",GetMouseX(),GetMouseY()),GetMousePosition().x, GetMousePosition().y, 20, RED);
+            }
 
-		if(n->prev != NULL && CheckCollisionRecs(n->rect,n->prev->rect)){
-			moveballs(&n);
-		}
+        EndDrawing();
+    }
 
-		if(n != NULL && CheckCollisionRecs(n->rect, playerrect)){
-			
-			balls* del = n;
+    UnloadTexture(wabbit);
+    UnloadTexture(ballTexture);
+    deleteeverything(&head, &tail);
 
+    for(int i = 0; i < totalSongs; i++) {
+        StopMusicStream(playlist[i].musica);
+        UnloadMusicStream(playlist[i].musica);
+    }
 
-			n->next->prev = n->prev;
-			n->prev->next = n->next;
-			
-			if(head == n) {
-				head = n->next;
-				aux = n->next;
-			}
-
-			n = n->next;
-			free(del);
-			
-			
-
-		} 
-
-		BeginDrawing();
-
-		UpdateMusicStream(praiera.musica);
-
-		
-		ClearBackground(BLACK);
-
-		DrawText("Hello Raylib", 200,200,20,WHITE);
-
-		if(IsMusicStreamPlaying(praiera.musica))DrawText("aeu",300,300, 20, WHITE );
-
-		
-
-		if((n->vect.x < screenwidth - 100 && n->vect.x > 0 + 100) && (n->vect.y > 0 + 100 && n->vect.y < screenheight-100))DrawTexture(head->sprite, head->vect.x, head->vect.y, WHITE);
-
-		moveballs(&head);
-
-		if(aux->dir == 1)DrawText("cima",400, 400, 20, WHITE);
-		if(aux->dir == 2)DrawText("baixo",400, 400, 20, WHITE);
-		if(aux->dir == 3)DrawText("direita",400, 400, 20, WHITE);
-		if(aux->dir == 4)DrawText("esquerda",400, 400, 20, WHITE);
-
-		// nota se mexendo
-		// fazer com que ela seja destruida quando chegar perto do jogador
-		if((n->vect.x < screenwidth - 100 && n->vect.x > 0 + 100) && (n->vect.y > 0 + 100 && n->vect.y < screenheight-100))DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
-
-		
-		// posicao onde o jogador vai pegar as notas
-
-
-		DrawCircle(pposx, pposy, 100, YELLOW);
-		DrawCircle(pposx, pposy, 50, GREEN);
-		DrawCircle(pposx, pposy, 25, BLUE);
-
-		DrawTexture(wabbit, pposx, pposy, WHITE);
-
-
-		if(up)DrawCircle(pposx, pposy - 60, 10, RED);
-		if(down)DrawCircle(pposx, pposy + 60, 10, RED);
-		if(right)DrawCircle(pposx + 60, pposy , 10, RED);
-		if(left)DrawCircle(pposx - 60, pposy, 10, RED);
-		
-
-		DrawCircleV(GetMousePosition(), 4, DARKGRAY);
-		DrawText(TextFormat("X: %i  Y: %i",GetMouseX(),GetMouseY()),GetMousePosition().x, GetMousePosition().y, 20, RED);
-		EndDrawing();
-	}
-
-
-	UnloadTexture(wabbit);
-	deleteeverything(&head, &tail);
-	StopMusicStream(praiera.musica);
-
-	UnloadMusicStream(praiera.musica);
-
-	CloseAudioDevice();
-	CloseWindow();
-	return 0;
+    CloseAudioDevice();
+    CloseWindow();
+    return 0;
 }
