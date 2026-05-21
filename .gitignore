@@ -60,3 +60,4 @@ MangueScience.make
 raylib.make
 .DS_Store
 *.make
+.vscode/c_cpp_properties.json

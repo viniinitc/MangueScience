@@ -45,8 +45,6 @@ void getdirectionofball(int* val){
 
 }
 
-
-
 void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
 
     if(*head == NULL) {
@@ -180,8 +178,19 @@ void moveballs(balls** head){
 
 }
 
+int countlines(const char* path) {
+    int c;
+    int count = 0;
 
+    FILE *read = fopen(path, "r");
 
+    while((c = fgetc(read)) != EOF){
+        if(c == '\n') count ++;
+    }
+
+    fclose(read);
+    return count;
+}
 
 
 int main (){
@@ -255,6 +264,24 @@ int main (){
 
     bool menuButtonClicked = false;
 	Rectangle playertablet;
+
+
+    int qtd = countlines("../tools/praiera.beatmap");
+    float beatmap_music1[qtd];
+
+    FILE *praieira_beatmap = fopen("../tools/praiera.beatmap", "r");
+
+    float dummy1, dummy2;
+    int dummy3;
+    
+    for(int i = 0; i < qtd; i++) {
+        fscanf(praieira_beatmap, "%f %f %f %d", &beatmap_music1[i], &dummy1, &dummy2, &dummy3);
+    }
+    
+    fclose(praieira_beatmap);
+
+    int next_note = 0;
+
     // game loop
     while (!WindowShouldClose()){
 
@@ -278,9 +305,11 @@ int main (){
 
                 deleteeverything(&head, &tail);
 
-                for(int i = 0; i < playlist[selectedSong].qntbeats; i++){
-                    createnextball(&head, &tail, 0, ballTexture);
-                }
+                // for(int i = 0; i < playlist[selectedSong].qntbeats; i++){
+                //     createnextball(&head, &tail, 0, ballTexture);
+                // }
+                next_note = 0;
+                musicStarted = false;
                 aux = head;
                 n = head;
                 currentScreen = SCREEN_GAMEPLAY;
@@ -293,6 +322,13 @@ int main (){
                 PlayMusicStream(playlist[selectedSong].musica);
                 SetMusicVolume(playlist[selectedSong].musica, 1.0);
                 musicStarted = true;            
+            }
+
+            if(GetMusicTimePlayed(playlist[selectedSong].musica) >= beatmap_music1[next_note] && next_note < qtd){
+                createnextball(&head, &tail, 0, ballTexture);
+                if(n == NULL) n = head;
+                if(aux == NULL) aux = head;
+                next_note++;
             }
 
             if(IsKeyPressed(KEY_UP)) {
@@ -353,13 +389,6 @@ int main (){
             }
 
             
-            
-            
-
-            
-
-
-
             playertablet.height = 30;
             playertablet.width = 30;
 
@@ -470,11 +499,13 @@ int main (){
                 DrawTexture(wabbit, pposx, pposy, WHITE);
 
 
-				moveballs(&n);
-                n->outsiderect.height--;
-                n->outsiderect.width--;	
-                n->outsiderect.x = n->rect.x;
-                n->outsiderect.y = n->rect.y;
+				if(n != NULL){
+                    moveballs(&n);
+                    n->outsiderect.height--;
+                    n->outsiderect.width--;	
+                    n->outsiderect.x = n->rect.x;
+                    n->outsiderect.y = n->rect.y;
+                }
                 	
 
                 if(aux != NULL) {
@@ -484,14 +515,16 @@ int main (){
                     if(aux->dir == 4) DrawText("esquerda", 400, 400, 20, WHITE);
                 }
 
-				if((n->vect.x < screenwidth - 100 && n->vect.x > 0 + 100) && (n->vect.y > 0 + 100 && n->vect.y < screenheight-100) && n->check == 0){
+				if((n != NULL && n->vect.x < screenwidth - 100 && n->vect.x > 0 + 100) && (n->vect.y > 0 + 100 && n->vect.y < screenheight-100) && n->check == 0){
                     
-					DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
+                    //tirei para ver se as batidas estao certas com a musica - nicole
+					//DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
                     
                     
 					DrawRectangleRec(n->rect, BLUE);
 					
-                    DrawRectangleLinesEx(n->outsiderect, 30, WHITE);
+                    //tirei para ver se as batidas estao certas com a musica - nicole
+                    //DrawRectangleLinesEx(n->outsiderect, 30, WHITE);
 
 				}                
 
