@@ -23,6 +23,7 @@ typedef struct balls{
     //ORDEM DE DIRECOES UP DOWN RIGHT LEFT
     int dir;
     Rectangle rect;
+    Rectangle outsiderect;
 	int check;
     Texture2D sprite;
     Vector2 vect;
@@ -82,6 +83,10 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
         (*head)->rect.y = posy;
         (*head)->rect.height = sprite.height;
         (*head)->rect.width = sprite.width;
+        (*head)->outsiderect.height = sprite.height + 20;
+        (*head)->outsiderect.width = sprite.width + 20;
+        (*head)->outsiderect.x = posx;
+        (*head)->outsiderect.y = posy;
         (*head)->sprite = sprite;
         (*head)->vect.x = posx;
         (*head)->vect.y = posy;
@@ -122,6 +127,10 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
     n->next->rect.y = posy;
     n->next->rect.height = sprite.height;
     n->next->rect.width = sprite.width;
+    n->next->outsiderect.height = sprite.height + 20;
+    n->next->outsiderect.width = sprite.width + 20;
+    n->next->outsiderect.x = posx;
+    n->next->outsiderect.y = posy;
     n->next->sprite = sprite;
     n->next->vect.x = posx;
     n->next->vect.y = posy;
@@ -343,7 +352,8 @@ int main (){
                 up = 0;
             }
 
-
+            
+            
             
 
             
@@ -382,7 +392,8 @@ int main (){
             }
 
             if(n != NULL && n->prev != NULL && CheckCollisionRecs(n->rect,n->prev->rect)){
-                moveballs(&n);
+                
+                
             }
 
 
@@ -459,7 +470,12 @@ int main (){
                 DrawTexture(wabbit, pposx, pposy, WHITE);
 
 
-				moveballs(&n);				
+				moveballs(&n);
+                n->outsiderect.height--;
+                n->outsiderect.width--;	
+                n->outsiderect.x = n->rect.x;
+                n->outsiderect.y = n->rect.y;
+                	
 
                 if(aux != NULL) {
                     if(aux->dir == 1) DrawText("cima", 400, 400, 20, WHITE);
@@ -469,11 +485,14 @@ int main (){
                 }
 
 				if((n->vect.x < screenwidth - 100 && n->vect.x > 0 + 100) && (n->vect.y > 0 + 100 && n->vect.y < screenheight-100) && n->check == 0){
-
+                    
 					DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
-
+                    
+                    
 					DrawRectangleRec(n->rect, BLUE);
 					
+                    DrawRectangleLinesEx(n->outsiderect, 30, WHITE);
+
 				}                
 
                 // posicao onde o jogador vai pegar as notas (alvos vermelhos)
@@ -481,6 +500,8 @@ int main (){
                 if(down)DrawRectangleRec(playertablet, RED);
                 if(right)DrawRectangleRec(playertablet, RED);
                 if(left)DrawRectangleRec(playertablet, RED);
+
+                
 
 
                 // Debug posicional do mouse na tela
