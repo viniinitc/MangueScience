@@ -18,5 +18,6 @@ Um jogo de ritmo feito em C com a biblioteca Raylib, inspirado no movimento Mang
 - **Linguagem C**: Estruturação e lógica central do jogo.
 - **Raylib**: Renderização gráfica 2D e gerenciamento de streams de áudio.
 - **Estrutura de Dados**: Implementação de uma **Lista Duplamente Encadeada** para gerenciar, mover e destruir as notas musicais na tela de forma dinâmica e eficiente.
+- **aubio**: Análise de áudio em tempo real, detecção de onsets, beats e extração de features musicais.
 - **Algoritmo de Ordenação (InsertSort)**: Ordena o score de pontuação do usuário.
 - **Máquina de Estados**: Controle limpo de transição entre as telas (Menu, Seleção e Jogo).
