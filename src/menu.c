@@ -1,11 +1,6 @@
 #include "raylib.h"
 #include <stdbool.h>
-
-typedef enum GameScreen { 
-    SCREEN_MENU, 
-    SCREEN_SONG_SELECT, 
-    SCREEN_GAMEPLAY 
-} GameScreen;
+#include "types.h"
 
 extern GameScreen currentScreen;
 

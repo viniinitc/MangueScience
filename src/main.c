@@ -3,40 +3,13 @@
 #include <stdbool.h>
 #include "raylib.h"
 #include "resource_dir.h"   
-
-typedef enum GameScreen {
-    SCREEN_MENU,
-    SCREEN_SONG_SELECT, 
-    SCREEN_GAMEPLAY 
-} GameScreen;
+#include "types.h"
+#include <math.h>
 
 GameScreen currentScreen = SCREEN_MENU;
 
 extern bool DrawMenu(void);
-
-//notas
-typedef struct balls{
-
-    int type;
-    //1 - up; 2 - down; 3 - right; 4 - left
-    //quando vcs acharam que precisar mudar algo na lista nao esquecam de mudar na funcao de inicializacao
-    //ORDEM DE DIRECOES UP DOWN RIGHT LEFT
-    int dir;
-    Rectangle rect;
-    Rectangle outsiderect;
-	int check;
-    Texture2D sprite;
-    Vector2 vect;
-    struct balls* next;
-    struct balls* prev;
-
-}balls;
-
-typedef struct songs{
-    Music musica;
-    int qntbeats;
-    const char *title;
-}songs;
+extern int UpdateSongSelect(int totalSongs, int* selectedSong);
 
 void getdirectionofball(int* val){
 
@@ -200,7 +173,7 @@ int main (){
     SetRandomSeed(10);
     
     
-    InitWindow(1280, 800, "Hello Raylib");
+    InitWindow(1240, 800, "Hello Raylib");
     InitAudioDevice();
 
 
@@ -225,6 +198,12 @@ int main (){
     playlist[2].musica = LoadMusicStream("da_lama_ao_caos.mp3");
     playlist[2].qntbeats = 510;
     playlist[2].title = "Da Lama ao Caos";
+
+    const char* beatmaps[] = {
+        "../tools/praiera.beatmap",
+        "../tools/maracatu_atomico.beatmap",
+        "../tools/da_lama_ao_caos.beatmap"
+    };
 
     int selectedSong = 0;
     int totalSongs = 3;
@@ -266,21 +245,15 @@ int main (){
 	Rectangle playertablet;
 
 
-    int qtd = countlines("../tools/praiera.beatmap");
-    float beatmap_music1[qtd];
-
-    FILE *praieira_beatmap = fopen("../tools/praiera.beatmap", "r");
-
+    int qtd = 0;
+    float* beatmap_music = NULL;
     float dummy1, dummy2;
     int dummy3;
-    
-    for(int i = 0; i < qtd; i++) {
-        fscanf(praieira_beatmap, "%f %f %f %d", &beatmap_music1[i], &dummy1, &dummy2, &dummy3);
-    }
-    
-    fclose(praieira_beatmap);
-
     int next_note = 0;
+
+    float max_distance = fmaxf(screenwidth / 2.0f, screenheight / 2.0f); //pega a maior distância entre a borda e o centro da tela
+    float ball_speed = 3.0f * 60.0f; // velocidade da bola em pixels por segundo
+    float lead_time = max_distance / ball_speed; // tempo em segundos que a bola leva para percorrer do spawn até o centro
 
     // game loop
     while (!WindowShouldClose()){
@@ -294,29 +267,32 @@ int main (){
 
         } else if(currentScreen == SCREEN_SONG_SELECT){
 
-            if (IsKeyPressed(KEY_DOWN)) {
-                selectedSong = (selectedSong + 1) % totalSongs;
-            }
-            if (IsKeyPressed(KEY_UP)) {
-                selectedSong = (selectedSong - 1 + totalSongs) % totalSongs;
-            }
-
-            if (IsKeyPressed(KEY_ENTER)) {
-
+            int result = UpdateSongSelect(totalSongs, &selectedSong);
+            if(result >= 0) {
+                // carrega beatmap e muda de tela
                 deleteeverything(&head, &tail);
+                    
+                if(beatmap_music != NULL) free(beatmap_music);
 
-                // for(int i = 0; i < playlist[selectedSong].qntbeats; i++){
-                //     createnextball(&head, &tail, 0, ballTexture);
-                // }
-                next_note = 0;
-                musicStarted = false;
-                aux = head;
-                n = head;
-                currentScreen = SCREEN_GAMEPLAY;
-            }
+                    qtd = countlines(beatmaps[selectedSong]);
+                    beatmap_music = malloc(qtd * sizeof(float));
 
+                    FILE *f = fopen(beatmaps[selectedSong], "r");
+                    for(int i = 0; i < qtd; i++) {
+                        fscanf(f, "%f %f %f %d", &beatmap_music[i], &dummy1, &dummy2, &dummy3);
+                    }
+                    fclose(f);
+
+                    next_note = 0;
+                    musicStarted = false;
+                    aux = head;
+                    n = head;
+                    currentScreen = SCREEN_GAMEPLAY;
+                }
+                   
         }
         else if (currentScreen == SCREEN_GAMEPLAY) {
+
             
             if (!musicStarted) {
                 PlayMusicStream(playlist[selectedSong].musica);
@@ -324,7 +300,9 @@ int main (){
                 musicStarted = true;            
             }
 
-            if(GetMusicTimePlayed(playlist[selectedSong].musica) >= beatmap_music1[next_note] && next_note < qtd){
+            float spawn_time = fmaxf(0.0f, beatmap_music[next_note] - lead_time); // calcula o tempo em q a bola deve aparecer na tela
+
+            if(GetMusicTimePlayed(playlist[selectedSong].musica) >= spawn_time && next_note < qtd){
                 createnextball(&head, &tail, 0, ballTexture);
                 if(n == NULL) n = head;
                 if(aux == NULL) aux = head;
@@ -451,8 +429,15 @@ int main (){
             
 
 
+            float musicDuration = GetMusicTimeLength(playlist[selectedSong].musica);
+            float musicPlayed  = GetMusicTimePlayed(playlist[selectedSong].musica);
 
-            UpdateMusicStream(playlist[selectedSong].musica);
+            if (musicPlayed >= musicDuration - 0.1f) {
+                StopMusicStream(playlist[selectedSong].musica);
+                currentScreen = SCREEN_SCORE;
+            } else {
+                UpdateMusicStream(playlist[selectedSong].musica);
+            }
             
         } 
 
@@ -471,12 +456,12 @@ int main (){
                 for (int i = 0; i < totalSongs; i++) {
                     int posY = 250 + (i * 60);
                     if (i == selectedSong) {
-                        DrawText(TextFormat("> %s <", playlist[i].title), 200, posY, 24, GOLD);
+                        DrawText(TextFormat("> %s <", playlist[i].title), 200, posY, 24, GOLD);                    
                     } else {
                         DrawText(playlist[i].title, 220, posY, 24, LIGHTGRAY);
                     }
                 }
-                
+                        
                 DrawText("Use as SETAS para navegar e ENTER para confirmar", 200, 650, 20, GRAY);
 
             } 
@@ -541,6 +526,12 @@ int main (){
                 DrawCircleV(GetMousePosition(), 4, DARKGRAY);
                 DrawText(TextFormat("X: %i  Y: %i",GetMouseX(),GetMouseY()),GetMousePosition().x, GetMousePosition().y, 20, RED);
             }
+            else if(currentScreen == SCREEN_SCORE){
+
+                ClearBackground(BLACK);
+                DrawText("Tela de pontuação", 200,200,20,WHITE);
+
+            }
 
 
         EndDrawing();
@@ -555,6 +546,7 @@ int main (){
         UnloadMusicStream(playlist[i].musica);
     }
 
+    if(beatmap_music != NULL) free(beatmap_music);
     CloseAudioDevice();
     CloseWindow();
     return 0;
