@@ -223,8 +223,10 @@ int main (){
     Texture2D ballTexture = LoadTexture("balltest.png");
     //textura do jogador
     Texture wabbit = LoadTexture("wabbit_alpha.png");
-    gs.skins[0] = LoadTexture("skin1.png");
+    gs.skins[0] = LoadTexture("skin1_v2.png");
     gs.skins[1] = LoadTexture("skin2.png");
+    gs.skins[2] = LoadTexture("skin3.png");
+    gs.skins[3] = LoadTexture("skin1.png");
     gs.selectedSkin = 0;
 
     //posicao do jogador

@@ -37,7 +37,7 @@ typedef struct balls{
 }balls;
 
 typedef struct GameState{
-    Texture2D skins[2];
+    Texture2D skins[3];
     int selectedSkin;
 } GameState;
 
