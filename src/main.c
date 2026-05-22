@@ -7,9 +7,13 @@
 #include <math.h>
 
 GameScreen currentScreen = SCREEN_MENU;
+GameState gs;
 
 extern bool DrawMenu(void);
 extern int UpdateSongSelect(int totalSongs, int* selectedSong);
+extern void DrawSongSelect(songs playlist[], int totalSongs, int selectedSong);
+extern int UpdateCharacterSelect(void);
+extern void DrawCharacterSelect(void);
 
 void getdirectionofball(int* val){
 
@@ -190,6 +194,7 @@ int main (){
     playlist[0].musica = LoadMusicStream("praiera.mp3");
     playlist[0].qntbeats = 452;
     playlist[0].title = "Praiera - Chico Science & Nation Zumbi";
+    playlist[0].offset = 0.0f;
 
     playlist[1].musica = LoadMusicStream("maracatu_atomico.mp3");
     playlist[1].qntbeats = 380;
@@ -218,6 +223,9 @@ int main (){
     Texture2D ballTexture = LoadTexture("balltest.png");
     //textura do jogador
     Texture wabbit = LoadTexture("wabbit_alpha.png");
+    gs.skins[0] = LoadTexture("skin1.png");
+    gs.skins[1] = LoadTexture("skin2.png");
+    gs.selectedSkin = 0;
 
     //posicao do jogador
     float pposx = screenwidth/2;
@@ -245,7 +253,7 @@ int main (){
 	Rectangle playertablet;
 
 
-    int qtd = 0;
+    int qtd_notes = 0;
     float* beatmap_music = NULL;
     float dummy1, dummy2;
     int dummy3;
@@ -261,24 +269,35 @@ int main (){
         if (currentScreen == SCREEN_MENU) {
 
             if (IsKeyPressed(KEY_ENTER) || menuButtonClicked) {
-                currentScreen = SCREEN_SONG_SELECT;
+                currentScreen = SCREEN_CHARACTER_SELECT;;
                 menuButtonClicked = false;
             }
 
-        } else if(currentScreen == SCREEN_SONG_SELECT){
+        } 
+        else if(currentScreen == SCREEN_CHARACTER_SELECT){
+
+            int result = UpdateCharacterSelect();
+
+            if(result == 1){
+                currentScreen = SCREEN_SONG_SELECT;
+            }
+
+        }
+        else if(currentScreen == SCREEN_SONG_SELECT){
 
             int result = UpdateSongSelect(totalSongs, &selectedSong);
+
             if(result >= 0) {
                 // carrega beatmap e muda de tela
                 deleteeverything(&head, &tail);
                     
                 if(beatmap_music != NULL) free(beatmap_music);
 
-                    qtd = countlines(beatmaps[selectedSong]);
-                    beatmap_music = malloc(qtd * sizeof(float));
+                    qtd_notes = countlines(beatmaps[selectedSong]);
+                    beatmap_music = malloc(qtd_notes * sizeof(float));
 
                     FILE *f = fopen(beatmaps[selectedSong], "r");
-                    for(int i = 0; i < qtd; i++) {
+                    for(int i = 0; i < qtd_notes; i++) {
                         fscanf(f, "%f %f %f %d", &beatmap_music[i], &dummy1, &dummy2, &dummy3);
                     }
                     fclose(f);
@@ -288,7 +307,7 @@ int main (){
                     aux = head;
                     n = head;
                     currentScreen = SCREEN_GAMEPLAY;
-                }
+            }
                    
         }
         else if (currentScreen == SCREEN_GAMEPLAY) {
@@ -300,13 +319,17 @@ int main (){
                 musicStarted = true;            
             }
 
-            float spawn_time = fmaxf(0.0f, beatmap_music[next_note] - lead_time); // calcula o tempo em q a bola deve aparecer na tela
+            if(next_note < qtd_notes){
 
-            if(GetMusicTimePlayed(playlist[selectedSong].musica) >= spawn_time && next_note < qtd){
-                createnextball(&head, &tail, 0, ballTexture);
-                if(n == NULL) n = head;
-                if(aux == NULL) aux = head;
-                next_note++;
+                float spawn_time = fmaxf(0.0f, beatmap_music[next_note] - lead_time); // calcula o tempo em q a bola deve aparecer na tela
+
+                if(GetMusicTimePlayed(playlist[selectedSong].musica) >= spawn_time && next_note < qtd_notes){
+                    createnextball(&head, &tail, 0, ballTexture);
+                    if(n == NULL) n = head;
+                    if(aux == NULL) aux = head;
+                    next_note++;
+                }
+
             }
 
             if(IsKeyPressed(KEY_UP)) {
@@ -409,7 +432,7 @@ int main (){
                 n = n->next;
             }
 
-			if(n != NULL && CheckCollisionRecs(n->rect, playertablet) && n->check==0){
+			if(n != NULL && (up || down || right || left) && CheckCollisionRecs(n->rect, playertablet) && n->check == 0){
 
 				PlaySound(hit);
 				n->check++;
@@ -447,22 +470,14 @@ int main (){
             if (currentScreen == SCREEN_MENU) {
                 menuButtonClicked = DrawMenu();
             } 
+            else if(currentScreen == SCREEN_CHARACTER_SELECT){
+
+                DrawCharacterSelect();
+
+            }
             else if(currentScreen == SCREEN_SONG_SELECT){
 
-                ClearBackground(BLACK);
-                
-                DrawText("SELECIONE SUA MUSICA", GetScreenWidth()/2 - MeasureText("SELECIONE SUA MUSICA", 30)/2, 100, 30, RAYWHITE);
-
-                for (int i = 0; i < totalSongs; i++) {
-                    int posY = 250 + (i * 60);
-                    if (i == selectedSong) {
-                        DrawText(TextFormat("> %s <", playlist[i].title), 200, posY, 24, GOLD);                    
-                    } else {
-                        DrawText(playlist[i].title, 220, posY, 24, LIGHTGRAY);
-                    }
-                }
-                        
-                DrawText("Use as SETAS para navegar e ENTER para confirmar", 200, 650, 20, GRAY);
+                DrawSongSelect(playlist, totalSongs, selectedSong);
 
             } 
             else if (currentScreen == SCREEN_GAMEPLAY){
@@ -549,5 +564,6 @@ int main (){
     if(beatmap_music != NULL) free(beatmap_music);
     CloseAudioDevice();
     CloseWindow();
+
     return 0;
 }

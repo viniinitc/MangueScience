@@ -5,6 +5,7 @@
 
 typedef enum GameScreen {
     SCREEN_MENU,
+    SCREEN_CHARACTER_SELECT,
     SCREEN_SONG_SELECT, 
     SCREEN_GAMEPLAY,
     SCREEN_SCORE 
@@ -14,6 +15,7 @@ typedef struct songs{
     Music musica;
     int qntbeats;
     const char *title;
+    float offset;
 }songs;
 
 //notas
@@ -33,5 +35,10 @@ typedef struct balls{
     struct balls* prev;
 
 }balls;
+
+typedef struct GameState{
+    Texture2D skins[2];
+    int selectedSkin;
+} GameState;
 
 #endif
