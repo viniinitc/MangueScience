@@ -5,9 +5,11 @@
 #include "resource_dir.h"   
 #include "types.h"
 #include <math.h>
+#include "score_system.h"
 
 GameScreen currentScreen = SCREEN_MENU;
 GameState gs;
+NodeAVL* raizPartidasAVL = NULL;
 
 extern bool DrawMenu(void);
 extern int UpdateSongSelect(int totalSongs, int* selectedSong);
@@ -211,6 +213,7 @@ int main (){
     };
 
     int selectedSong = 0;
+    int pontuacaoAtual = 0;
     int totalSongs = 3;
 
 	Sound hit = LoadSound("hit.mp3");
@@ -308,6 +311,7 @@ int main (){
                     musicStarted = false;
                     aux = head;
                     n = head;
+                    pontuacaoAtual = 0;
                     currentScreen = SCREEN_GAMEPLAY;
             }
                    
@@ -438,6 +442,8 @@ int main (){
 
 				PlaySound(hit);
 				n->check++;
+                pontuacaoAtual += 100;
+                
 			}
 
 			if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check == 0){
@@ -545,8 +551,7 @@ int main (){
             }
             else if(currentScreen == SCREEN_SCORE){
 
-                ClearBackground(BLACK);
-                DrawText("Tela de pontuação", 200,200,20,WHITE);
+                GerenciarTelaPontuacao(pontuacaoAtual, &raizPartidasAVL, &currentScreen);
 
             }
 
