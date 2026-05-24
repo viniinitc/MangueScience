@@ -33,14 +33,25 @@ typedef struct balls {
 } balls;
 
 typedef struct GameState {
-    Texture2D skins[3];
+    Texture2D skins[4];
     int selectedSkin;
 } GameState;
 
-// estrutura do sistema de pontuação
 typedef struct Partida {
     char nome[16];
     int pontuacao;
 } Partida;
+
+bool DrawMenu(void);
+
+int UpdateSongSelect(int totalSongs, int* selectedSong);
+void DrawSongSelect(songs playlist[], int totalSongs, int selectedSong);
+
+int UpdateCharacterSelect(void);
+void DrawCharacterSelect(void);
+
+int UpdateScoreSystem(int pontuacaoAtual);
+void DrawScoreSystem(int pontuacaoAtual);
+
 
 #endif

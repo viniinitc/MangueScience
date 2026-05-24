@@ -10,7 +10,7 @@ endif
 
 ifeq ($(config),debug_x64)
   MangueScience_config = debug_x64
-  raylib_config = debug_x64	
+  raylib_config = debug_x64
 
 else ifeq ($(config),debug_x86)
   MangueScience_config = debug_x86

@@ -5,17 +5,10 @@
 #include "resource_dir.h"   
 #include "types.h"
 #include <math.h>
-#include "score_system.h"
 
 GameScreen currentScreen = SCREEN_MENU;
 GameState gs;
-NodeAVL* raizPartidasAVL = NULL;
 
-extern bool DrawMenu(void);
-extern int UpdateSongSelect(int totalSongs, int* selectedSong);
-extern void DrawSongSelect(songs playlist[], int totalSongs, int selectedSong);
-extern int UpdateCharacterSelect(void);
-extern void DrawCharacterSelect(void);
 
 void getdirectionofball(int* val){
 
@@ -435,7 +428,7 @@ int main (){
 
 			if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check != 0){
                 
-                n = n->next;
+                if(n->next != NULL) n = n->next;
             }
 
 			if(n != NULL && (up || down || right || left) && CheckCollisionRecs(n->rect, playertablet) && n->check == 0){
@@ -447,13 +440,11 @@ int main (){
 			}
 
 			if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check == 0){
-				n->check++;
-				n = n->next;
+				
+                n->check++;
+				if(n->next != NULL) n = n->next;
 					
-            } 
-
-			
-            
+            } 		
 
 
             // nota se mexendo e sendo destruida com segurança quando chega perto/colide com o jogador
@@ -471,6 +462,12 @@ int main (){
             }
             
         } 
+        else if(currentScreen == SCREEN_SCORE){
+
+            int result = UpdateScoreSystem(pontuacaoAtual);
+            if(result == 1) currentScreen = SCREEN_MENU;
+
+        }
 
 
         BeginDrawing();
@@ -551,7 +548,7 @@ int main (){
             }
             else if(currentScreen == SCREEN_SCORE){
 
-                GerenciarTelaPontuacao(pontuacaoAtual, &raizPartidasAVL, &currentScreen);
+                DrawScoreSystem(pontuacaoAtual);
 
             }
 
