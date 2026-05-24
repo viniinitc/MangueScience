@@ -11,7 +11,6 @@ static int maxFrames = 16;
 
 int UpdateCharacterSelect(void){
 
-    // troca personagem
     if(IsKeyPressed(KEY_RIGHT)){
         gs.selectedSkin++;
 
@@ -27,7 +26,6 @@ int UpdateCharacterSelect(void){
             gs.selectedSkin = 1;
         }
     }
-    // atualização da animação
     frameCounter++;
 
     if(frameCounter >= (60/frameSpeed)){
@@ -53,7 +51,7 @@ void DrawCharacterSelect(void){
     const char* names[3] = {
         "Chico Caranguejo",
         "CrocoScience",
-        "Pitu Atômico"
+        "Pitú Atômico"
     };
 
     Color nameColors[3] = {
@@ -63,6 +61,8 @@ void DrawCharacterSelect(void){
     };
 
     ClearBackground(BLACK);
+
+    DrawBackground(gs.backgrounds[SCREEN_CHARACTER_SELECT]);
 
     DrawText(
         "ESCOLHA SEU PERSONAGEM",
@@ -76,7 +76,7 @@ void DrawCharacterSelect(void){
 
     for(int i = 0; i < 3; i++){
 
-        Texture2D skin = gs.skins[i];
+        Texture2D skin = gs.skinsSelect[i];
 
         int frameWidth = skin.width / maxFrames;
         int frameHeight = skin.height;
@@ -88,7 +88,6 @@ void DrawCharacterSelect(void){
             frameHeight
         };
 
-        // aumenta tamanho dos personagens
         float scale = 4.0f;
 
         float characterWidth = frameWidth * scale;
@@ -107,7 +106,6 @@ void DrawCharacterSelect(void){
             frameHeight * scale
         };
 
-        // desenha personagem aumentado
         DrawTexturePro(
             skin,
             frameRec,
@@ -117,7 +115,6 @@ void DrawCharacterSelect(void){
             WHITE
         );
 
-        // contorno do selecionado
         if(i == gs.selectedSkin){
 
             DrawRectangleLinesEx(
@@ -143,7 +140,7 @@ void DrawCharacterSelect(void){
     }
 
     DrawText(
-        "Use <- e -> para trocar | ENTER para confirmar",
+        "Use <- e -> para trocar e ENTER para confirmar",
         GetScreenWidth()/2 - MeasureText("Use <- e -> para trocar | ENTER para confirmar", 20)/2,
         700,
         20,

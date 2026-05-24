@@ -17,7 +17,7 @@ void getdirectionofball(int* val){
 
 }
 
-void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
+void createnextball(balls** head, balls** tail, int type, Texture2D sprite, int dir){
 
     if(*head == NULL) {
 
@@ -30,7 +30,7 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
         int posx;
         int posy;
 
-        getdirectionofball(&(*head)->dir);
+        (*head)->dir = dir;
         
         if((*head)->dir == 1){
             posx = GetScreenWidth()/2;
@@ -71,7 +71,7 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
     if(n->next == NULL) return;
     n->next->type = type;
     
-    getdirectionofball(&(n->next->dir));
+    n->next->dir = dir;
     
     int posx;
     int posy;
@@ -111,6 +111,22 @@ void createnextball(balls** head,balls** tail, int type,Texture2D sprite){
 
 }
 
+void removeball(balls** head, balls** tail, balls* alvo) {
+    if(alvo == NULL) return;
+
+    if(alvo->prev != NULL)
+        alvo->prev->next = alvo->next;
+    else
+        *head = alvo->next;
+
+    if(alvo->next != NULL)
+        alvo->next->prev = alvo->prev;
+    else
+        *tail = alvo->prev;
+
+    free(alvo);
+}
+
 void deleteeverything(balls** head, balls** tail){
 
     balls* n = *head;
@@ -130,24 +146,66 @@ void deleteeverything(balls** head, balls** tail){
 //movimento das notas
 void moveballs(balls** head){
 
-    if((*head)->dir == 1){
-            (*head)->rect.y+=3;
-            (*head)->vect.y+=3;
+    float speed_h = (GetScreenWidth() / (float)GetScreenHeight()) * 3.0f;
+    float speed_v = 3.0f;
 
+    if((*head)->dir == 1){ 
+        (*head)->rect.y += speed_v; 
+        (*head)->vect.y += speed_v; 
     }
     if((*head)->dir == 2){
-            (*head)->rect.y-=3;
-            (*head)->vect.y-=3;
+        (*head)->rect.y -= speed_v;
+        (*head)->vect.y -= speed_v;
     }
     if((*head)->dir == 3){
-            (*head)->rect.x-=3;
-            (*head)->vect.x-=3;
+        (*head)->rect.x -= speed_h;
+        (*head)->vect.x -= speed_h;
     }
     if((*head)->dir == 4){
-            (*head)->rect.x+=3;
-            (*head)->vect.x+=3;
+        (*head)->rect.x += speed_h;
+        (*head)->vect.x += speed_h;
+    }
+}
+
+int counthitballs(balls* head){
+
+    int count = 0;
+    balls* current = head;
+
+    while(current != NULL){
+
+        if(current->check == 1){
+            count++;
+        }
+
+        current = current->next;
     }
 
+    return count;
+}
+
+int countmissedballs(balls* head){
+
+    int count = 0;
+    balls* current = head;
+
+    while(current != NULL){
+
+        bool saiu = (
+            current->vect.x < -100 ||
+            current->vect.x > GetScreenWidth() + 100 ||
+            current->vect.y < -100 ||
+            current->vect.y > GetScreenHeight() + 100
+        );
+
+        if(saiu && current->check == 0){
+            count++;
+        }
+
+        current = current->next;
+    }
+
+    return count;
 }
 
 int countlines(const char* path) {
@@ -155,9 +213,13 @@ int countlines(const char* path) {
     int count = 0;
 
     FILE *read = fopen(path, "r");
+    if(read == NULL) {
+        TraceLog(LOG_ERROR, "Beatmap nao encontrado: %s", path);
+        return 0;
+    }
 
     while((c = fgetc(read)) != EOF){
-        if(c == '\n') count ++;
+        if(c == '\n') count++;
     }
 
     fclose(read);
@@ -184,30 +246,42 @@ int main (){
 
     SearchAndSetResourceDir("resources");
 
-    songs playlist[3];
+    songs playlist[5];
 
-    playlist[0].musica = LoadMusicStream("praiera.mp3");
+    playlist[0].musica = LoadMusicStream("music/praieira.mp3");
     playlist[0].qntbeats = 452;
-    playlist[0].title = "Praiera - Chico Science & Nation Zumbi";
+    playlist[0].title = "Praieira - Chico Science & Nation Zumbi";
     playlist[0].offset = 0.0f;
 
-    playlist[1].musica = LoadMusicStream("maracatu_atomico.mp3");
+    playlist[1].musica = LoadMusicStream("music/maracatu_atomico.mp3");
     playlist[1].qntbeats = 380;
-    playlist[1].title = "Maracatu Atomico";
+    playlist[1].title = "Maracatu Atômico - Chico Science & Nation Zumbi";
 
-    playlist[2].musica = LoadMusicStream("da_lama_ao_caos.mp3");
+    playlist[2].musica = LoadMusicStream("music/da_lama_ao_caos.mp3");
     playlist[2].qntbeats = 510;
-    playlist[2].title = "Da Lama ao Caos";
+    playlist[2].title = "Da Lama ao Caos - Chico Science & Nation Zumbi";
+
+    playlist[3].musica = LoadMusicStream("music/manguetown.mp3");
+    playlist[3].qntbeats = 452;
+    playlist[3].title = "Manguetown - Chico Science & Nation Zumbi";
+    playlist[3].offset = 0.0f;
+
+    playlist[4].musica = LoadMusicStream("music/rios_pontes_e_overdrives.mp3");
+    playlist[4].qntbeats = 380;
+    playlist[4].title = "Rios, Pontes e Overdrives - Chico Science & Nation Zumbi";
+
 
     const char* beatmaps[] = {
-        "../tools/praiera.beatmap",
+        "../tools/praieira.beatmap",
         "../tools/maracatu_atomico.beatmap",
-        "../tools/da_lama_ao_caos.beatmap"
+        "../tools/da_lama_ao_caos.beatmap",
+        "../tools/manguetown.beatmap",
+        "../tools/rios_pontes_e_overdrives.beatmap"
     };
 
     int selectedSong = 0;
     int pontuacaoAtual = 0;
-    int totalSongs = 3;
+    int totalSongs = 5;
 
 	Sound hit = LoadSound("hit.mp3");
 
@@ -216,14 +290,29 @@ int main (){
     balls* aux = NULL;
     balls* n = NULL;
 
-    Texture2D ballTexture = LoadTexture("balltest.png");
-    //textura do jogador
-    Texture wabbit = LoadTexture("wabbit_alpha.png");
-    gs.skins[0] = LoadTexture("skin1_v2.png");
-    gs.skins[1] = LoadTexture("skin2.png");
-    gs.skins[2] = LoadTexture("skin3.png");
-    gs.skins[3] = LoadTexture("skin1.png");
+
+
+    Texture2D noteTextures[3];
+    noteTextures[0] = LoadTexture("notes/notamusical1.png");
+    noteTextures[1] = LoadTexture("notes/notamusical2.png");
+    noteTextures[2] = LoadTexture("notes/notamusical3.png");
+
+    gs.skins[0] = LoadTexture("characters/skin1.png");
+    gs.skins[1] = LoadTexture("characters/skin2.png");
+    gs.skins[2] = LoadTexture("characters/skin3.png");
+
+    // seleção
+    gs.skinsSelect[0] = LoadTexture("characters/skin1_v2.png");
+    gs.skinsSelect[1] = LoadTexture("characters/skin2.png");
+    gs.skinsSelect[2] = LoadTexture("characters/skin3.png");
     gs.selectedSkin = 0;
+
+    gs.backgrounds[SCREEN_MENU] = LoadTexture("backgrounds/bg_menu.png");
+    gs.backgrounds[SCREEN_CHARACTER_SELECT] = LoadTexture("backgrounds/bg_character_select.png"); 
+    gs.backgrounds[SCREEN_GAMEPLAY] = LoadTexture("backgrounds/bg_gameplay.png");
+    gs.backgrounds[SCREEN_SCORE] = LoadTexture("backgrounds/bg_score.png");
+
+    gs.fonte = LoadFontEx("fonts/PressStart2P-Regular.ttf", 64, NULL, 0);
 
     //posicao do jogador
     float pposx = screenwidth/2;
@@ -231,8 +320,6 @@ int main (){
 
     Rectangle playerrect;
 
-    playerrect.height = wabbit.height;
-    playerrect.width = wabbit.width;
     playerrect.x = pposx;
     playerrect.y = pposy;
 
@@ -253,13 +340,14 @@ int main (){
 
     int qtd_notes = 0;
     float* beatmap_music = NULL;
+    int* note_dirs = NULL;
     float dummy1, dummy2;
     int dummy3;
     int next_note = 0;
 
-    float max_distance = fmaxf(screenwidth / 2.0f, screenheight / 2.0f); //pega a maior distância entre a borda e o centro da tela
-    float ball_speed = 3.0f * 60.0f; // velocidade da bola em pixels por segundo
-    float lead_time = max_distance / ball_speed; // tempo em segundos que a bola leva para percorrer do spawn até o centro
+    float dist_horizontal = GetScreenWidth() / 2.0f;
+    float dist_vertical = GetScreenHeight() / 2.0f;
+    float ball_speed = 3.0f * 60.0f;
 
     // game loop
     while (!WindowShouldClose()){
@@ -295,17 +383,28 @@ int main (){
                     beatmap_music = malloc(qtd_notes * sizeof(float));
 
                     FILE *f = fopen(beatmaps[selectedSong], "r");
-                    for(int i = 0; i < qtd_notes; i++) {
-                        fscanf(f, "%f %f %f %d", &beatmap_music[i], &dummy1, &dummy2, &dummy3);
-                    }
-                    fclose(f);
+                    if(f == NULL) {
+                        TraceLog(LOG_ERROR, "Erro ao abrir beatmap: %s", beatmaps[selectedSong]);
+                        currentScreen = SCREEN_SONG_SELECT;
+                    } else {
+                        for(int i = 0; i < qtd_notes; i++) {
+                            fscanf(f, "%f %f %f %d", &beatmap_music[i], &dummy1, &dummy2, &dummy3);
+                        }
+                        fclose(f);
 
-                    next_note = 0;
-                    musicStarted = false;
-                    aux = head;
-                    n = head;
-                    pontuacaoAtual = 0;
-                    currentScreen = SCREEN_GAMEPLAY;
+                        if(note_dirs != NULL) free(note_dirs);
+                        note_dirs = malloc(qtd_notes * sizeof(int));
+                        for(int i = 0; i < qtd_notes; i++){
+                            note_dirs[i] = GetRandomValue(1, 4);
+                        }
+
+                        next_note = 0;
+                        musicStarted = false;
+                        aux = head;
+                        n = head;
+                        pontuacaoAtual = 0;
+                        currentScreen = SCREEN_GAMEPLAY;
+                    }
             }
                    
         }
@@ -320,10 +419,13 @@ int main (){
 
             if(next_note < qtd_notes){
 
-                float spawn_time = fmaxf(0.0f, beatmap_music[next_note] - lead_time); // calcula o tempo em q a bola deve aparecer na tela
+                int dir = note_dirs[next_note];
+                float dist = (dir == 1 || dir == 2) ? dist_vertical : dist_horizontal;
+                float lead_time = dist / ball_speed;
+                float spawn_time = fmaxf(0.0f, beatmap_music[next_note] - lead_time);
 
-                if(GetMusicTimePlayed(playlist[selectedSong].musica) >= spawn_time && next_note < qtd_notes){
-                    createnextball(&head, &tail, 0, ballTexture);
+                if(GetMusicTimePlayed(playlist[selectedSong].musica) >= spawn_time){
+                    createnextball(&head, &tail, 0, noteTextures[next_note % 3], dir);
                     if(n == NULL) n = head;
                     if(aux == NULL) aux = head;
                     next_note++;
@@ -392,20 +494,20 @@ int main (){
             playertablet.height = 30;
             playertablet.width = 30;
 
+            float raio = 60.0f;
+
             if(up){
-
-                    playertablet.x = pposx;
-                    playertablet.y = pposy - 60;
-
+                playertablet.x = pposx - 15;
+                playertablet.y = pposy - raio - 15;
             }else if(down){
-                    playertablet.x = pposx;
-                    playertablet.y = pposy + 80;
+                playertablet.x = pposx - 15;
+                playertablet.y = pposy + raio - 15;
             }else if(right){
-                    playertablet.x = pposx + 80;
-                    playertablet.y = pposy - 10;
+                playertablet.x = pposx + raio - 15;
+                playertablet.y = pposy - 15;
             }else{
-                    playertablet.x = pposx -60;
-                    playertablet.y = pposy - 10;
+                playertablet.x = pposx - raio - 15;
+                playertablet.y = pposy - 15;
             }
 
 
@@ -420,11 +522,6 @@ int main (){
                 if(IsKeyPressed(KEY_ONE)) ResumeMusicStream(playlist[selectedSong].musica);
             }
 
-            if(n != NULL && n->prev != NULL && CheckCollisionRecs(n->rect,n->prev->rect)){
-                
-                
-            }
-
 
 			if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check != 0){
                 
@@ -432,20 +529,44 @@ int main (){
             }
 
 			if(n != NULL && (up || down || right || left) && CheckCollisionRecs(n->rect, playertablet) && n->check == 0){
-
-				PlaySound(hit);
-				n->check++;
-                pontuacaoAtual += 100;
-                
-			}
-
-			if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check == 0){
-				
+                PlaySound(hit);
                 n->check++;
-				if(n->next != NULL) n = n->next;
-					
-            } 		
+                pontuacaoAtual += 100;
+            }
 
+			if(n != NULL && n->check == 0) {
+
+                float dx = n->vect.x - pposx;
+                float dy = n->vect.y - pposy;
+                float distancia = sqrtf(dx*dx + dy*dy);
+
+                if(distancia <= 60.0f) {
+                    n->check++;
+                    if(n->next != NULL) n = n->next;
+                }
+            }		
+
+            if(n != NULL) {
+
+                bool saiu = (n->vect.x < -100 || n->vect.x > GetScreenWidth() + 100 || n->vect.y < -100 || n->vect.y > GetScreenHeight() + 100);
+
+                if(saiu) {
+
+                    balls* remover = n;
+
+                    if(n->next != NULL)
+                        n = n->next;
+                    else
+                        n = NULL;
+
+                    removeball(&head, &tail, remover);
+                }
+            }
+
+            // se n ficou preso na mesma nota que já saiu, tenta avançar
+            if(n != NULL && n->check != 0 && n->next != NULL) {
+                n = n->next;
+            }
 
             // nota se mexendo e sendo destruida com segurança quando chega perto/colide com o jogador
             
@@ -487,7 +608,7 @@ int main (){
             } 
             else if (currentScreen == SCREEN_GAMEPLAY){
                 
-                ClearBackground(BLACK);
+                ClearBackground(WHITE);
 
                 DrawText("Hello Raylib", 200,200,20,WHITE);
 
@@ -497,11 +618,29 @@ int main (){
 
 
                 // Círculos concêntricos e alvos redondos no meio da tela
-                DrawCircle(pposx, pposy, 100, YELLOW);
-                DrawCircle(pposx, pposy, 50, GREEN);
-                DrawCircle(pposx, pposy, 25, BLUE);
+                DrawCircle(pposx, pposy, 150, YELLOW);
+                DrawCircle(pposx, pposy, 100, GREEN);
+                DrawCircle(pposx, pposy, 60, BLUE);
 
-                DrawTexture(wabbit, pposx, pposy, WHITE);
+                gs.frameCounter++;
+                if(gs.frameCounter >= (60/4)){
+                    gs.frameCounter = 0;
+                    gs.currentFrame++;
+                    if(gs.currentFrame >= 16) gs.currentFrame = 0;
+                }
+
+                int frameWidth = gs.skins[gs.selectedSkin].width / 16;
+
+                Rectangle frameRec = { gs.currentFrame * frameWidth, 
+                    0, frameWidth, 
+                    (float)gs.skins[gs.selectedSkin].height };
+
+                Rectangle destRec = { pposx - (frameWidth * 2.0f)/2, 
+                    pposy - (gs.skins[gs.selectedSkin].height * 2.0f)/2, 
+                    frameWidth * 2.0f, 
+                    gs.skins[gs.selectedSkin].height * 2.0f };
+
+                DrawTexturePro(gs.skins[gs.selectedSkin], frameRec, destRec, (Vector2){0,0}, 0.0f, WHITE);
 
 
 				if(n != NULL){
@@ -520,35 +659,37 @@ int main (){
                     if(aux->dir == 4) DrawText("esquerda", 400, 400, 20, WHITE);
                 }
 
-				if((n != NULL && n->vect.x < screenwidth - 100 && n->vect.x > 0 + 100) && (n->vect.y > 0 + 100 && n->vect.y < screenheight-100) && n->check == 0){
-                    
-                    //tirei para ver se as batidas estao certas com a musica - nicole
-					//DrawTextureRec(n->sprite, n->rect, n->vect, WHITE);
-                    
-                    
-					DrawRectangleRec(n->rect, BLUE);
-					
-                    //tirei para ver se as batidas estao certas com a musica - nicole
-                    //DrawRectangleLinesEx(n->outsiderect, 30, WHITE);
+				if(n != NULL && n->check == 0 && n->vect.x > 100 && n->vect.x < GetScreenWidth() - 100 && n->vect.y > 100 && n->vect.y < GetScreenHeight() - 100){
+                    float tamanho = 64.0f;
+                    DrawTexturePro(
+                        n->sprite,
+                        (Rectangle){ 0, 0, n->sprite.width, n->sprite.height },
+                        (Rectangle){ n->vect.x, n->vect.y, tamanho, tamanho },
+                        (Vector2){ tamanho/2, tamanho/2 },
+                        0.0f,
+                        WHITE
+                    );
+                }           
 
-				}                
-
-                // posicao onde o jogador vai pegar as notas (alvos vermelhos)
                 if(up)DrawRectangleRec(playertablet, RED);
                 if(down)DrawRectangleRec(playertablet, RED);
                 if(right)DrawRectangleRec(playertablet, RED);
                 if(left)DrawRectangleRec(playertablet, RED);
 
                 
-
-
-                // Debug posicional do mouse na tela
                 DrawCircleV(GetMousePosition(), 4, DARKGRAY);
                 DrawText(TextFormat("X: %i  Y: %i",GetMouseX(),GetMouseY()),GetMousePosition().x, GetMousePosition().y, 20, RED);
             }
             else if(currentScreen == SCREEN_SCORE){
 
-                DrawScoreSystem(pontuacaoAtual);
+
+                DrawScoreSystem(
+                    12345,     // score
+                    97.4f,     // accuracy
+                    48         // combo
+                );
+
+
 
             }
 
@@ -556,16 +697,34 @@ int main (){
         EndDrawing();
     }
 
-    UnloadTexture(wabbit);
-    UnloadTexture(ballTexture);
-    deleteeverything(&head, &tail);
+    UnloadFont(gs.fonte);
+    if(note_dirs != NULL) free(note_dirs);
+
+    for(int i = 0; i < 3; i++){
+        UnloadTexture(gs.skins[i]);
+    }
+
+    for(int i = 0; i < 3; i++){
+        UnloadTexture(gs.skinsSelect[i]);
+    }
+
+    for(int i = 0; i < 3; i++){
+        UnloadTexture(noteTextures[i]);
+    }
+
+    for(int i = 0; i < 5; i++){
+        UnloadTexture(gs.backgrounds[i]);
+    }
 
     for(int i = 0; i < totalSongs; i++) {
         StopMusicStream(playlist[i].musica);
         UnloadMusicStream(playlist[i].musica);
     }
 
+    deleteeverything(&head, &tail);
+
     if(beatmap_music != NULL) free(beatmap_music);
+
     CloseAudioDevice();
     CloseWindow();
 

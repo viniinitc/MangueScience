@@ -3,6 +3,7 @@
 #include "types.h"
 
 extern GameScreen currentScreen;
+extern GameState gs;
 
 int UpdateSongSelect(int totalSongs, int* selectedSong){
 
@@ -23,7 +24,8 @@ int UpdateSongSelect(int totalSongs, int* selectedSong){
 void DrawSongSelect(songs playlist[], int totalSongs, int selectedSong){
 
     ClearBackground(BLACK);
-                
+
+    DrawBackground(gs.backgrounds[SCREEN_CHARACTER_SELECT]);
                 
     DrawText("SELECIONE SUA MUSICA", GetScreenWidth()/2 - MeasureText("SELECIONE SUA MUSICA", 30)/2, 100, 30, RAYWHITE);
 

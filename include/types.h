@@ -33,14 +33,21 @@ typedef struct balls {
 } balls;
 
 typedef struct GameState {
-    Texture2D skins[4];
+    Texture2D skins[3]; 
+    Texture2D skinsSelect[3];
     int selectedSkin;
+    Texture2D backgrounds[5];
+    Font fonte;
+    int currentFrame;
+    int frameCounter;
 } GameState;
 
 typedef struct Partida {
     char nome[16];
     int pontuacao;
 } Partida;
+
+void DrawBackground(Texture2D texture);
 
 bool DrawMenu(void);
 
@@ -51,7 +58,11 @@ int UpdateCharacterSelect(void);
 void DrawCharacterSelect(void);
 
 int UpdateScoreSystem(int pontuacaoAtual);
-void DrawScoreSystem(int pontuacaoAtual);
+void DrawScoreSystem(
+    int score,
+    float accuracy,
+    int maxCombo
+);
 
 
 #endif

@@ -6,18 +6,22 @@
 int main(){
 
     // lista de músicas pra processar
-    const int qtd_musicas = 3;
+    const int qtd_musicas = 5;
 
     const char* musicas[] = {
-        "../resources/praiera.mp3",
-        "../resources/maracatu_atomico.mp3", 
-        "../resources/da_lama_ao_caos.mp3"
+        "../resources/music/praieira.mp3",
+        "../resources/music/maracatu_atomico.mp3", 
+        "../resources/music/da_lama_ao_caos.mp3",
+        "../resources/music/manguetown.mp3",
+        "../resources/music/rios_pontes_e_overdrives.mp3"
     };
 
     const char* beatmaps[] = {
-        "praiera.beatmap",
+        "praieira.beatmap",
         "maracatu_atomico.beatmap",
-        "da_lama_ao_caos.beatmap"
+        "da_lama_ao_caos.beatmap",
+        "manguetown.beatmap",
+        "rios_pontes_e_overdrives.beatmap"
     };
     
 

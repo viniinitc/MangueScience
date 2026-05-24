@@ -3,6 +3,7 @@
 #include "types.h"
 
 extern GameState gs;
+extern GameScreen currentScreen;
 
 static Partida ranking[100];
 static int totalPartidas = 0;
@@ -48,33 +49,193 @@ int UpdateScoreSystem(int pontuacaoAtual){
 
 }
 
-void DrawScoreSystem(int pontuacaoAtual){
+void DrawScoreSystem( int score, float accuracy, int maxCombo){
+    DrawBackground(gs.backgrounds[SCREEN_SCORE]);
 
-    ClearBackground(BLACK);
+    int scores[5] = {
+        12345,
+        11020,
+        9870,
+        8500,
+        7200
+    };
 
-    DrawText("FIM DE JOGO!", GetScreenWidth()/2 - MeasureText("FIM DE JOGO!", 36)/2, 60, 36, MAROON);
+    int totalScores = 5;
 
-    DrawText(TextFormat("Sua Pontuacao: %d pts", pontuacaoAtual),
-        GetScreenWidth()/2 - MeasureText(TextFormat("Sua Pontuacao: %d pts", pontuacaoAtual), 24)/2, 120, 24, GOLD);
+    Rectangle painel = {
+        GetScreenWidth()/2 - 270,
+        120,
+        540,
+        560
+    };
 
-    DrawText(TextFormat("RECORDE MAXIMO DO JOGO: %d pts", maiorRecorde),
-        GetScreenWidth()/2 - MeasureText(TextFormat("RECORDE MAXIMO DO JOGO: %d pts", maiorRecorde), 18)/2, 160, 18, SKYBLUE);
+    DrawRectangleRounded(
+        painel,
+        0.04f,
+        8,
+        (Color){0,0,0,150}
+    );
 
-    DrawRectangle(GetScreenWidth()/2 - 250, 200, 500, 3, WHITE);
-    DrawText("HISTORICO DE PONTUACOES (TOP 5)",
-        GetScreenWidth()/2 - MeasureText("HISTORICO DE PONTUACOES (TOP 5)", 20)/2, 220, 20, GREEN);
+    DrawRectangleRoundedLinesEx(
+        painel,
+        0.04f,
+        8,
+        3,
+        (Color){0,220,255,180}
+    );
 
-    int exibirMax = (totalPartidas > 5) ? 5 : totalPartidas;
-    for (int i = 0; i < exibirMax; i++) {
-        Color corRank = (ranking[i].pontuacao == pontuacaoAtual) ? GOLD : WHITE;
-        DrawText(TextFormat("%d.", i + 1), GetScreenWidth()/2 - 180, 270 + (i * 40), 22, corRank);
-        DrawText(ranking[i].nome, GetScreenWidth()/2 - 130, 270 + (i * 40), 22, corRank);
-        DrawText(TextFormat("%05d pts", ranking[i].pontuacao), GetScreenWidth()/2 + 60, 270 + (i * 40), 22, corRank);
+    const char *titulo = "FIM DE JOGO!";
+
+    Vector2 tituloSize =
+        MeasureTextEx(gs.fonte, titulo, 34, 2);
+
+    DrawTextEx(
+        gs.fonte,
+        titulo,
+        (Vector2){
+            GetScreenWidth()/2 - tituloSize.x/2 + 3,
+            143
+        },
+        34,
+        2,
+        (Color){0,120,255,255}
+    );
+
+    DrawTextEx(
+        gs.fonte,
+        titulo,
+        (Vector2){
+            GetScreenWidth()/2 - tituloSize.x/2,
+            140
+        },
+        34,
+        2,
+        (Color){0,255,220,255}
+    );
+
+    DrawTextEx(
+        gs.fonte,
+        TextFormat("SCORE: %06i", score),
+        (Vector2){
+            GetScreenWidth()/2 - 145,
+            220
+        },
+        24,
+        2,
+        (Color){255,220,100,255}
+    );
+
+    DrawTextEx(
+        gs.fonte,
+        TextFormat("ACCURACY: %.1f%%", accuracy),
+        (Vector2){
+            GetScreenWidth()/2 - 145,
+            270
+        },
+        16,
+        2,
+        (Color){120,220,255,255}
+    );
+
+    DrawTextEx(
+        gs.fonte,
+        TextFormat("MAX COMBO: %i", maxCombo),
+        (Vector2){
+            GetScreenWidth()/2 - 145,
+            310
+        },
+        16,
+        2,
+        (Color){100,255,180,255}
+    );
+
+    Vector2 histSize =
+        MeasureTextEx(gs.fonte, "HISTORICO", 18, 2);
+
+    DrawTextEx(
+        gs.fonte,
+        "HISTORICO",
+        (Vector2){
+            GetScreenWidth()/2 - histSize.x/2,
+            360
+        },
+        18,
+        2,
+        (Color){0,255,180,255}
+    );
+
+    for(int i = 0; i < totalScores; i++)
+    {
+        int y = 400 + (i * 34);
+
+        DrawRectangleRounded(
+            (Rectangle){
+                GetScreenWidth()/2 - 150,
+                y - 4,
+                300,
+                28
+            },
+            0.18f,
+            6,
+            (Color){20,30,50,170}
+        );
+
+        DrawTextEx(
+            gs.fonte,
+            TextFormat("%d. %06d pts", i + 1, scores[i]),
+            (Vector2){
+                GetScreenWidth()/2 - 120,
+                y
+            },
+            14,
+            2,
+            (Color){0,255,180,255}
+        );
     }
 
-    Rectangle btnVoltar = { GetScreenWidth()/2 - 110, 530, 220, 45 };
-    bool hover = CheckCollisionPointRec(GetMousePosition(), btnVoltar);
-    DrawRectangleRec(btnVoltar, hover ? DARKGREEN : GREEN);
-    DrawText("JOGAR DE NOVO", btnVoltar.x + 35, btnVoltar.y + 13, 18, WHITE);
+    Rectangle btnVoltar = {
+        GetScreenWidth()/2 - 110,
+        610,
+        220,
+        50
+    };
 
+    bool hover =
+        CheckCollisionPointRec(GetMousePosition(), btnVoltar);
+
+    DrawRectangleRounded(
+        btnVoltar,
+        0.3f,
+        8,
+        hover
+        ? (Color){0,180,255,255}
+        : (Color){0,120,200,255}
+    );
+
+    DrawRectangleRoundedLinesEx(
+        btnVoltar,
+        0.3f,
+        8,
+        3,
+        (Color){180,255,255,255}
+    );
+
+    Vector2 txt = MeasureTextEx(
+        gs.fonte,
+        "JOGAR DE NOVO",
+        14,
+        2
+    );
+
+    DrawTextEx(
+        gs.fonte,
+        "JOGAR DE NOVO",
+        (Vector2){
+            btnVoltar.x + btnVoltar.width/2 - txt.x/2,
+            btnVoltar.y + 14
+        },
+        14,
+        2,
+        WHITE
+    );
 }
