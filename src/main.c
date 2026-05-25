@@ -344,12 +344,19 @@ int main (){
     float dummy1, dummy2;
     int dummy3;
     int next_note = 0;
+    int comboAtual = 0;
+    int maxCombo = 0;
+    int notasAcertadas = 0;
+    int notasPassadas = 0;
 
     float dist_horizontal = GetScreenWidth() / 2.0f;
     float dist_vertical = GetScreenHeight() / 2.0f;
     float ball_speed = 3.0f * 60.0f;
 
     // game loop
+
+    LoadRanking();
+
     while (!WindowShouldClose()){
 
         if (currentScreen == SCREEN_MENU) {
@@ -403,6 +410,10 @@ int main (){
                         aux = head;
                         n = head;
                         pontuacaoAtual = 0;
+                        comboAtual = 0;
+                        maxCombo = 0;
+                        notasAcertadas = 0;
+                        notasPassadas = 0;
                         currentScreen = SCREEN_GAMEPLAY;
                     }
             }
@@ -426,6 +437,7 @@ int main (){
 
                 if(GetMusicTimePlayed(playlist[selectedSong].musica) >= spawn_time){
                     createnextball(&head, &tail, 0, noteTextures[next_note % 3], dir);
+                    notasPassadas++;
                     if(n == NULL) n = head;
                     if(aux == NULL) aux = head;
                     next_note++;
@@ -532,6 +544,10 @@ int main (){
                 PlaySound(hit);
                 n->check++;
                 pontuacaoAtual += 100;
+
+                notasAcertadas++;
+                comboAtual++;
+                if(comboAtual > maxCombo) maxCombo = comboAtual;
             }
 
 			if(n != NULL && n->check == 0) {
@@ -551,6 +567,10 @@ int main (){
                 bool saiu = (n->vect.x < -100 || n->vect.x > GetScreenWidth() + 100 || n->vect.y < -100 || n->vect.y > GetScreenHeight() + 100);
 
                 if(saiu) {
+
+                    if (n->check == 0) { 
+                        comboAtual = 0;
+                    }
 
                     balls* remover = n;
 
@@ -585,7 +605,7 @@ int main (){
         } 
         else if(currentScreen == SCREEN_SCORE){
 
-            int result = UpdateScoreSystem(pontuacaoAtual);
+            int result = UpdateScoreSystem(pontuacaoAtual, playlist[selectedSong].title);
             if(result == 1) currentScreen = SCREEN_MENU;
 
         }
@@ -682,14 +702,16 @@ int main (){
             }
             else if(currentScreen == SCREEN_SCORE){
 
+                float accuracyReal = 0.0f;
+                if (notasPassadas > 0) {
+                    accuracyReal = ((float)notasAcertadas / notasPassadas) * 100.0f;
+                }
 
                 DrawScoreSystem(
-                    12345,     // score
-                    97.4f,     // accuracy
-                    48         // combo
+                    pontuacaoAtual, 
+                    accuracyReal,   
+                    maxCombo        
                 );
-
-
 
             }
 

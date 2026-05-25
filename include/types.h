@@ -4,7 +4,6 @@
 #include "raylib.h"
 #include <stdbool.h>
 
-
 typedef enum GameScreen {
     SCREEN_MENU,
     SCREEN_CHARACTER_SELECT,
@@ -42,8 +41,9 @@ typedef struct GameState {
     int frameCounter;
 } GameState;
 
+// 1. Modificamos a struct Partida para caber o nome da música
 typedef struct Partida {
-    char nome[16];
+    char nomeMusica[100]; 
     int pontuacao;
 } Partida;
 
@@ -57,12 +57,15 @@ void DrawSongSelect(songs playlist[], int totalSongs, int selectedSong);
 int UpdateCharacterSelect(void);
 void DrawCharacterSelect(void);
 
-int UpdateScoreSystem(int pontuacaoAtual);
+// 2. Adicionamos as funções do TXT e modificamos o UpdateScoreSystem
+void LoadRanking(void);
+void SaveRanking(void);
+int UpdateScoreSystem(int pontuacaoAtual, const char* nomeDaMusica);
+
 void DrawScoreSystem(
     int score,
     float accuracy,
     int maxCombo
 );
-
 
 #endif
