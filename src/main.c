@@ -230,19 +230,30 @@ int countlines(const char* path) {
 int main (){
     
     SetConfigFlags(FLAG_VSYNC_HINT | FLAG_WINDOW_HIGHDPI);
-
     SetRandomSeed(10);
     
     
     InitWindow(1240, 800, "Hello Raylib");
+    ToggleFullscreen();
     InitAudioDevice();
-
 
     int test[2];
 
     //tamanho da tela
     int screenheight = GetScreenHeight();
     int screenwidth = GetScreenWidth();
+
+    int monitor = GetCurrentMonitor();
+    int monitorWidth = GetMonitorWidth(monitor);
+    int monitorHeight = GetMonitorHeight(monitor);
+
+    RenderTexture2D target = LoadRenderTexture(1240, 800);
+    SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
+
+    SetWindowSize(monitorWidth, monitorHeight);
+    if (!IsWindowFullscreen()) {
+        ToggleFullscreen();
+    }
 
     SearchAndSetResourceDir("resources");
 
