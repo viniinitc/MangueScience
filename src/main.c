@@ -144,27 +144,30 @@ void deleteeverything(balls** head, balls** tail){
 }
 
 //movimento das notas
-void moveballs(balls** head){
+void moveballs(balls* ball, float speed)
+{
+    Vector2 center = {
+        GetScreenWidth()/2.0f,
+        GetScreenHeight()/2.0f
+    };
 
-    float speed_h = (GetScreenWidth() / (float)GetScreenHeight()) * 3.0f;
-    float speed_v = 3.0f;
+    Vector2 dir = {
+        center.x - ball->vect.x,
+        center.y - ball->vect.y
+    };
 
-    if((*head)->dir == 1){ 
-        (*head)->rect.y += speed_v; 
-        (*head)->vect.y += speed_v; 
+    float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
+
+    if(len > 0.0f){
+        dir.x /= len;
+        dir.y /= len;
     }
-    if((*head)->dir == 2){
-        (*head)->rect.y -= speed_v;
-        (*head)->vect.y -= speed_v;
-    }
-    if((*head)->dir == 3){
-        (*head)->rect.x -= speed_h;
-        (*head)->vect.x -= speed_h;
-    }
-    if((*head)->dir == 4){
-        (*head)->rect.x += speed_h;
-        (*head)->vect.x += speed_h;
-    }
+
+    ball->vect.x += dir.x * speed;
+    ball->vect.y += dir.y * speed;
+
+    ball->rect.x = ball->vect.x;
+    ball->rect.y = ball->vect.y;
 }
 
 int counthitballs(balls* head){
@@ -294,7 +297,7 @@ int main (){
     int pontuacaoAtual = 0;
     int totalSongs = 5;
 
-	Sound hit = LoadSound("hit.mp3");
+	Sound hit = LoadSound("music/hit.mp3");
 
     balls* head = NULL;
     balls* tail = NULL;
@@ -362,7 +365,7 @@ int main (){
 
     float dist_horizontal = GetScreenWidth() / 2.0f;
     float dist_vertical = GetScreenHeight() / 2.0f;
-    float ball_speed = 3.0f * 60.0f;
+    float ball_speed = 15.0f * 60.0f;
 
     // game loop
 
@@ -675,7 +678,7 @@ int main (){
 
 
 				if(n != NULL){
-                    moveballs(&n);
+                    moveballs(n,ball_speed*GetFrameTime());
                     n->outsiderect.height--;
                     n->outsiderect.width--;	
                     n->outsiderect.x = n->rect.x;
