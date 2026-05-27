@@ -19,13 +19,6 @@ const char *pauseOptions[3] = {
 };
 
 
-void getdirectionofball(int* val){
-
-    int dir = GetRandomValue(1,4);
-    *val = dir;
-
-}
-
 void createnextball(balls** head, balls** tail, int type, Texture2D sprite, int dir){
 
     if(*head == NULL) {
@@ -151,7 +144,6 @@ void deleteeverything(balls** head, balls** tail){
     *tail = NULL;
 }
 
-
 void moveballs(balls* ball, float speed){
 
     Vector2 centro = { GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f };
@@ -175,47 +167,6 @@ void moveballs(balls* ball, float speed){
     ball->rect.y = ball->vect.y - 32.0f;
     ball->rect.width = 64.0f;
     ball->rect.height = 64.0f;
-}
-
-int counthitballs(balls* head){
-
-    int count = 0;
-    balls* current = head;
-
-    while(current != NULL){
-
-        if(current->check == 1){
-            count++;
-        }
-
-        current = current->next;
-    }
-
-    return count;
-}
-
-int countmissedballs(balls* head){
-
-    int count = 0;
-    balls* current = head;
-
-    while(current != NULL){
-
-        bool saiu = (
-            current->vect.x < -100 ||
-            current->vect.x > GetScreenWidth() + 100 ||
-            current->vect.y < -100 ||
-            current->vect.y > GetScreenHeight() + 100
-        );
-
-        if(saiu && current->check == 0){
-            count++;
-        }
-
-        current = current->next;
-    }
-
-    return count;
 }
 
 int countlines(const char* path) {
@@ -248,6 +199,15 @@ int countActiveNotes(balls* head) {
     return count;
 }
 
+balls* findfirstactive(balls* head) {
+    balls* current = head;
+    while(current != NULL) {
+        if(current->check == 0)
+            return current;
+        current = current->next;
+    }
+    return NULL;
+}
 
 int main (){
     
@@ -527,8 +487,8 @@ int main (){
                     if(countActiveNotes(head) < 2 && (ultimo_spawn < 0.0f || (beatmap_music[next_note] - ultimo_spawn) >= 0.3f)){
                         createnextball(&head, &tail, 0, noteTextures[next_note % 3], dir);
                         ultimo_spawn = beatmap_music[next_note]; 
-                        if(n == NULL) n = head;
-                        if(aux == NULL) aux = head;
+                        if(n == NULL) n = findfirstactive(head);
+                        if(aux == NULL) aux = findfirstactive(head);
                     }
                     next_note++; 
                 }
@@ -623,9 +583,13 @@ int main (){
             }
 
 
-			if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check != 0){
+			// if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check != 0){
                 
-                if(n->next != NULL) n = n->next;
+            //     if(n->next != NULL) n = n->next;
+            // }
+
+            if(n == NULL || n->check != 0){
+                n = findfirstactive(head);
             }
 
             balls* tempHit = head;
@@ -705,12 +669,13 @@ int main (){
                         n = NULL;
 
                     removeball(&head, &tail, remover);
+                    n = findfirstactive(head);
                 }
             }
 
-            if(n != NULL && n->check != 0 && n->next != NULL) {
-                n = n->next;
-            }
+            // if(n != NULL && n->check != 0 && n->next != NULL) {
+            //     n = n->next;
+            // }
 
             float musicDuration = GetMusicTimeLength(playlist[selectedSong].musica);
             float musicPlayed  = GetMusicTimePlayed(playlist[selectedSong].musica);
@@ -919,7 +884,7 @@ int main (){
             
             else if (currentScreen == SCREEN_PAUSED) {
 
-                int bgIndex = 5 + gs.selectedSkin;
+                int bgIndex = BG_SKIN_0 + gs.selectedSkin;
                 DrawTexturePro(
                     gs.backgrounds[bgIndex],
                     (Rectangle){ 0, 0, gs.backgrounds[bgIndex].width, gs.backgrounds[bgIndex].height },
@@ -998,7 +963,7 @@ int main (){
         UnloadTexture(noteTextures[i]);
     }
 
-    for(int i = 0; i < 8; i++){
+    for(int i = 0; i < 9; i++){
         UnloadTexture(gs.backgrounds[i]);
     }
 
