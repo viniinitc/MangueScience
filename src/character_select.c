@@ -9,7 +9,11 @@ static int frameSpeed = 4;
 
 static int maxFrames = 16;
 
-int UpdateCharacterSelect(void){
+int UpdateCharacterSelect(Sound somSelecao){
+
+    if(IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT)) {
+        PlaySound(somSelecao);
+    }
 
     if(IsKeyPressed(KEY_RIGHT)){
         gs.selectedSkin++;

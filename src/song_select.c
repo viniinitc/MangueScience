@@ -5,7 +5,12 @@
 extern GameScreen currentScreen;
 extern GameState gs;
 
-int UpdateSongSelect(int totalSongs, int* selectedSong){
+int UpdateSongSelect(int totalSongs, int* selectedSong, Sound somSelecao){
+
+    if(IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) ||
+       IsKeyPressed(KEY_UP)   || IsKeyPressed(KEY_DOWN)) {
+        PlaySound(somSelecao);
+    }
 
     if (IsKeyPressed(KEY_DOWN)) {
         *selectedSong = (*selectedSong + 1) % totalSongs;

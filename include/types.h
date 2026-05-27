@@ -57,10 +57,10 @@ void DrawBackground(Texture2D texture);
 
 bool DrawMenu(void);
 
-int UpdateSongSelect(int totalSongs, int* selectedSong);
+int UpdateSongSelect(int totalSongs, int* selectedSong, Sound somSelecao);
 void DrawSongSelect(songs playlist[], int totalSongs, int selectedSong);
 
-int UpdateCharacterSelect(void);
+int UpdateCharacterSelect(Sound somSelecao);
 void DrawCharacterSelect(void);
 
 // 2. Adicionamos as funções do TXT e modificamos o UpdateScoreSystem

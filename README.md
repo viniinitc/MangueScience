@@ -1,23 +1,73 @@
 # MangueScience 🦀🎶
 
-Um jogo de ritmo feito em C com a biblioteca Raylib, inspirado no movimento Manguebeat. Desvie e acerte as notas no ritmo da lama ao caos!
+Jogo de ritmo feito em C com Raylib, inspirado no movimento Manguebeat de Recife. Acerte as notas no ritmo de Chico Science & Nação Zumbi!
+
+---
+
+## Gameplay
+
+Acesse a gameplay - [Clique aqui](https://drive.google.com/file/d/1SoiAiFkHP1SiqA3jQWZd58Zb1smQrOWB/view?usp=sharing)
+
+---
+
+## Como Compilar
+
+Certifique-se de ter o [Raylib](https://www.raylib.com) instalado, então:
+
+**Mac**
+```bash
+cd build
+./premake5.osx gmake
+make
+./game.sh
+```
+
+**Linux**
+```bash
+cd build
+./premake5 gmake
+cd ..
+chmod +x game.sh
+./game.sh
+```
+
+**Windows**
+```bash
+cd build
+premake5.exe gmake
+cd ..
+make
+game.exe
+```
 
 ---
 
 ## Como Jogar
 
-- **Menu / Seleção**: Use as `SETAS` para navegar pelas músicas e `ENTER` para confirmar.
-- **Gameplay**: 
-  - Use `SETAS (CIMA, BAIXO, ESQUERDA, DIREITA)` para direcionar o jogador em direção às notas.
-  - Pressione `1` para pausar/retomar a música a qualquer momento.
+| Ação | Tecla |
+|------|-------|
+| Navegar nos menus | `↑ ↓` |
+| Confirmar | `ENTER` |
+| Acertar notas | `↑ ↓ ← →` |
+| Pausar / Retomar | `SPACE` |
 
 ---
 
-## Tecnologias e Conceitos Utilizados
+## Tecnologias
 
-- **Linguagem C**: Estruturação e lógica central do jogo.
-- **Raylib**: Renderização gráfica 2D e gerenciamento de streams de áudio.
-- **Estrutura de Dados**: Implementação de uma **Lista Duplamente Encadeada** para gerenciar, mover e destruir as notas musicais na tela de forma dinâmica e eficiente.
-- **aubio**: Análise de áudio em tempo real, detecção de onsets, beats e extração de features musicais.
-- **Algoritmo de Ordenação (InsertSort)**: Ordena o score de pontuação do usuário.
-- **Máquina de Estados**: Controle limpo de transição entre as telas (Menu, Seleção e Jogo).
+- **C** — lógica central do jogo
+- **Raylib** — renderização gráfica e áudio
+- **Lista Duplamente Encadeada** — gerenciamento dinâmico das notas
+- **Insertion Sort** — ordenação do ranking de pontuações
+- **Máquina de Estados** — controle de telas (Menu, Seleção, Gameplay, Pause, Score)
+
+---
+
+## Créditos Musicais
+
+As músicas utilizadas neste jogo pertencem aos seus respectivos autores e são usadas apenas para fins educacionais e não comerciais.
+
+- **Chico Science & Nação Zumbi** — Praieira, Da Lama ao Caos, Manguetown, Rios Pontes e Overdrives
+- **Mundo Livre S/A** — Maracatu Atômico
+
+Este projeto não possui fins lucrativos. Todos os direitos das músicas pertencem aos artistas e suas gravadoras.

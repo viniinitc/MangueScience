@@ -278,6 +278,7 @@ int main (){
 
 	Sound somAcerto = LoadSound("music/som_acerto.mp3");
     Sound somErro   = LoadSound("music/som_erro.mp3");
+    Sound somSelecao = LoadSound("music/som_selecao.mp3");
 
     balls* head = NULL;
     balls* tail = NULL;
@@ -374,7 +375,7 @@ int main (){
         } 
         else if(currentScreen == SCREEN_CHARACTER_SELECT){
 
-            int result = UpdateCharacterSelect();
+            int result = UpdateCharacterSelect(somSelecao);
 
             if(result == 1){
                 currentScreen = SCREEN_SONG_SELECT;
@@ -383,7 +384,7 @@ int main (){
         }
         else if(currentScreen == SCREEN_SONG_SELECT){
 
-            int result = UpdateSongSelect(totalSongs, &selectedSong);
+            int result = UpdateSongSelect(totalSongs, &selectedSong, somSelecao);
 
             if(result >= 0) {
 
@@ -972,6 +973,7 @@ int main (){
 
     UnloadSound(somAcerto);
     UnloadSound(somErro);
+    UnloadSound(somSelecao); 
 
     deleteeverything(&head, &tail);
 
