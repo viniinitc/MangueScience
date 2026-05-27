@@ -33,11 +33,8 @@ chmod +x game.sh
 
 **Windows**
 ```bash
-cd build
-premake5.exe gmake
-cd ..
-make
-game.exe
+cd MangueScience
+bin\Debug\MangueScience.exe
 ```
 
 ---
