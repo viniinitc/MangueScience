@@ -447,6 +447,9 @@ int main (){
                         notasAcertadas = 0;
                         notasPassadas = 0;
                         ball_speed = ball_speed_base;
+                        ultimo_spawn = -1.0f;
+                        comboTimer = 0.0f;
+                        ultimaDezenaMostrada = 0;
                         currentScreen = SCREEN_GAMEPLAY;
                     }
             }
@@ -582,12 +585,6 @@ int main (){
                 if(IsKeyPressed(KEY_ONE)) ResumeMusicStream(playlist[selectedSong].musica);
             }
 
-
-			// if(n != NULL && CheckCollisionRecs(n->rect, playerrect) && n->check != 0){
-                
-            //     if(n->next != NULL) n = n->next;
-            // }
-
             if(n == NULL || n->check != 0){
                 n = findfirstactive(head);
             }
@@ -672,10 +669,6 @@ int main (){
                     n = findfirstactive(head);
                 }
             }
-
-            // if(n != NULL && n->check != 0 && n->next != NULL) {
-            //     n = n->next;
-            // }
 
             float musicDuration = GetMusicTimeLength(playlist[selectedSong].musica);
             float musicPlayed  = GetMusicTimePlayed(playlist[selectedSong].musica);
