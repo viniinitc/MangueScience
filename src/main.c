@@ -316,7 +316,8 @@ int main (){
     int pontuacaoAtual = 0;
     int totalSongs = 5;
 
-	Sound hit = LoadSound("music/hit.mp3");
+	Sound somAcerto = LoadSound("music/som_acerto.mp3");
+    Sound somErro   = LoadSound("music/som_erro.mp3");
 
     balls* head = NULL;
     balls* tail = NULL;
@@ -339,16 +340,21 @@ int main (){
     gs.skinsSelect[2] = LoadTexture("characters/skin3.png");
     gs.selectedSkin = 0;
 
-    gs.backgrounds[SCREEN_MENU]             = LoadTexture("backgrounds/bg_menu.png");
+    gs.backgrounds[SCREEN_MENU] = LoadTexture("backgrounds/bg_menu.png");
     gs.backgrounds[SCREEN_CHARACTER_SELECT] = LoadTexture("backgrounds/bg_character_select.png");
-    gs.backgrounds[SCREEN_SONG_SELECT]      = LoadTexture("backgrounds/bg_song_select.png");
-    gs.backgrounds[BG_SCORE]                = LoadTexture("backgrounds/bg_score.png");
+    gs.backgrounds[SCREEN_SONG_SELECT] = LoadTexture("backgrounds/bg_song_select.png");
+    gs.backgrounds[BG_SCORE] = LoadTexture("backgrounds/bg_score.png");
 
     gs.backgrounds[BG_SKIN_0] = LoadTexture("backgrounds/bg_carangueijo.png");
     gs.backgrounds[BG_SKIN_1] = LoadTexture("backgrounds/bg_crocoscience.png");
     gs.backgrounds[BG_SKIN_2] = LoadTexture("backgrounds/bg_camarao.png");
 
     Texture2D pauseRadio = LoadTexture("backgrounds/radio.png");
+
+    Texture2D setaCima = LoadTexture("setas/seta_cima.png");
+    Texture2D setaBaixo = LoadTexture("setas/seta_baixo.png");
+    Texture2D setaDireita = LoadTexture("setas/seta_dir.png");
+    Texture2D setaEsquerda = LoadTexture("setas/seta_esq.png");
 
     gs.fonte = LoadFontEx("fonts/PressStart2P-Regular.ttf", 64, NULL, 0);
 
@@ -586,23 +592,23 @@ int main (){
             }
 
             
-            playertablet.height = 30;
-            playertablet.width = 30;
+            playertablet.height = 60;
+            playertablet.width = 60;
 
             float raio = 80.0f;
 
             if(up){
-                playertablet.x = pposx - 15;
-                playertablet.y = pposy - raio - 15;
+                playertablet.x = pposx - 30;
+                playertablet.y = pposy - raio - 30;
             }else if(down){
-                playertablet.x = pposx - 15;
-                playertablet.y = pposy + raio - 15;
+                playertablet.x = pposx - 30;
+                playertablet.y = pposy + raio - 30;
             }else if(right){
-                playertablet.x = pposx + raio - 15;
-                playertablet.y = pposy - 15;
+                playertablet.x = pposx + raio - 30;
+                playertablet.y = pposy - 30;
             }else{
-                playertablet.x = pposx - raio - 15;
-                playertablet.y = pposy - 15;
+                playertablet.x = pposx - raio - 30;
+                playertablet.y = pposy - 30;
             }
 
 
@@ -630,7 +636,7 @@ int main (){
                 CheckCollisionRecs(tempHit->rect, playertablet) &&
                 tempHit->check == 0){
 
-                    PlaySound(hit);
+                    PlaySound(somAcerto);
 
                     tempHit->check = 2;
 
@@ -669,6 +675,7 @@ int main (){
 
                     if(dist_ao_centro <= 60.0f){
                         comboAtual = 0;
+                        PlaySound(somErro);
                         tempMiss->check = 1; 
                         notasPassadas++; 
                         ball_speed = ball_speed_base;
@@ -891,10 +898,22 @@ int main (){
                     tempDraw = tempDraw->next;
                 }
 
-                if(up)DrawRectangleRec(playertablet, RED);
-                if(down)DrawRectangleRec(playertablet, RED);
-                if(right)DrawRectangleRec(playertablet, RED);
-                if(left)DrawRectangleRec(playertablet, RED);
+                Texture2D* setaAtiva = NULL;
+                if(up)    setaAtiva = &setaCima;
+                if(down)  setaAtiva = &setaBaixo;
+                if(right) setaAtiva = &setaDireita;
+                if(left)  setaAtiva = &setaEsquerda;
+
+                if(setaAtiva != NULL) {
+                    DrawTexturePro(
+                        *setaAtiva,
+                        (Rectangle){ 0, 0, setaAtiva->width, setaAtiva->height },
+                        (Rectangle){ playertablet.x, playertablet.y, playertablet.width, playertablet.height },
+                        (Vector2){ 0, 0 },
+                        0.0f,
+                        WHITE
+                    );
+                }
                 
             }
             
@@ -987,6 +1006,14 @@ int main (){
         StopMusicStream(playlist[i].musica);
         UnloadMusicStream(playlist[i].musica);
     }
+
+    UnloadTexture(setaCima);
+    UnloadTexture(setaBaixo);
+    UnloadTexture(setaDireita);
+    UnloadTexture(setaEsquerda);
+
+    UnloadSound(somAcerto);
+    UnloadSound(somErro);
 
     deleteeverything(&head, &tail);
 
