@@ -11,7 +11,7 @@ static int totalPartidas = 0;
 static int maiorRecorde = 0;
 static bool processado = false;
 
-// Lê o arquivo TXT
+
 void LoadRanking(void) {
     FILE *file = fopen("ranking.txt", "r");
     if (file == NULL) return; 
@@ -24,7 +24,7 @@ void LoadRanking(void) {
     fclose(file);
 }
 
-// Salva no arquivo TXT
+
 void SaveRanking(void) {
     FILE *file = fopen("ranking.txt", "w");
     if (file == NULL) return;
@@ -68,7 +68,8 @@ int UpdateScoreSystem(int pontuacaoAtual, const char* nomeDaMusica){
         processado = true;
     }
 
-    Rectangle btnVoltar = { GetScreenWidth()/2 - 110, 610, 220, 50 };
+    
+    Rectangle btnVoltar = { GetScreenWidth()/2 - 120, 690, 240, 50 };
     
     if (CheckCollisionPointRec(GetMousePosition(), btnVoltar) && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
         processado = false;
@@ -78,63 +79,96 @@ int UpdateScoreSystem(int pontuacaoAtual, const char* nomeDaMusica){
     return 0;
 }
 
-void DrawScoreSystem( int score, float accuracy, int maxCombo){
-    DrawBackground(gs.backgrounds[SCREEN_SCORE]);
+void DrawScoreSystem(int score, float accuracy, int maxCombo){
+    
+    Texture2D background = gs.backgrounds[BG_SCORE];
+    DrawTexturePro(
+        background,
+        (Rectangle){0,0,background.width,background.height},
+        (Rectangle){0,0,GetScreenWidth(),GetScreenHeight()},
+        (Vector2){0,0}, 0, WHITE
+    );
 
-    // SEU DESIGN ORIGINAL DE VOLTA: Largura original de 540
-    Rectangle painel = { GetScreenWidth()/2 - 270, 120, 540, 560 };
+    Rectangle tvScreen = { 350, 195, 468, 358 };
 
-    DrawRectangleRounded(painel, 0.04f, 8, (Color){0,0,0,150});
-    DrawRectangleRoundedLinesEx(painel, 0.04f, 8, 3, (Color){0,220,255,180});
+    DrawRectangleRec(tvScreen, Fade((Color){0,255,120,255}, 0.06f));
+    for (int i = 0; i < tvScreen.height; i += 3)
+        DrawLine(tvScreen.x, tvScreen.y + i,
+                 tvScreen.x + tvScreen.width, tvScreen.y + i,
+                 Fade(BLACK, 0.18f));
 
-    const char *titulo = "FIM DE JOGO!";
-    Vector2 tituloSize = MeasureTextEx(gs.fonte, titulo, 34, 2);
+    Color verde = (Color){0,255,200,255};
+    float cx = tvScreen.x + tvScreen.width / 2.0f;
 
-    DrawTextEx(gs.fonte, titulo, (Vector2){ GetScreenWidth()/2 - tituloSize.x/2 + 3, 143 }, 34, 2, (Color){0,120,255,255});
-    DrawTextEx(gs.fonte, titulo, (Vector2){ GetScreenWidth()/2 - tituloSize.x/2, 140 }, 34, 2, (Color){0,255,220,255});
+    const char *titulo = "TRANSMISSAO ENCERRADA";
+    Vector2 tSize = MeasureTextEx(gs.fonte, titulo, 16, 2);
+    DrawTextEx(gs.fonte, titulo,
+        (Vector2){ cx - tSize.x/2, tvScreen.y + 16 },
+        16, 2, verde);
 
-    DrawTextEx(gs.fonte, TextFormat("SCORE: %06i", score), (Vector2){ GetScreenWidth()/2 - 145, 220 }, 24, 2, (Color){255,220,100,255});
-    DrawTextEx(gs.fonte, TextFormat("ACCURACY: %.1f%%", accuracy), (Vector2){ GetScreenWidth()/2 - 145, 270 }, 16, 2, (Color){120,220,255,255});
-    DrawTextEx(gs.fonte, TextFormat("MAX COMBO: %i", maxCombo), (Vector2){ GetScreenWidth()/2 - 145, 310 }, 16, 2, (Color){100,255,180,255});
 
-    Vector2 histSize = MeasureTextEx(gs.fonte, "HISTORICO", 18, 2);
-    DrawTextEx(gs.fonte, "HISTORICO", (Vector2){ GetScreenWidth()/2 - histSize.x/2, 360 }, 18, 2, (Color){0,255,180,255});
+    const char *sub = "O MANGUE LEMBRA.";
+    Vector2 subSize = MeasureTextEx(gs.fonte, sub, 8, 1);
+    DrawTextEx(gs.fonte, sub,
+        (Vector2){ cx - subSize.x/2, tvScreen.y + 46 },
+        8, 1, Fade(verde, 0.7f));
 
-    for(int i = 0; i < 5; i++)
-    {
-        int y = 400 + (i * 34);
 
-        // SEU DESIGN ORIGINAL DE VOLTA: Posição X e Largura originais (-150 e 300)
-        DrawRectangleRounded(
-            (Rectangle){ GetScreenWidth()/2 - 150, y - 4, 300, 28 },
-            0.18f, 6, (Color){20,30,50,170}
-        );
+    DrawLine(tvScreen.x + 20, tvScreen.y + 64,
+             tvScreen.x + tvScreen.width - 20, tvScreen.y + 64,
+             Fade(verde, 0.3f));
 
-        if (i < totalPartidas) {
-            // SEU DESIGN ORIGINAL DE VOLTA: Apenas os pontos e fonte tamanho 14
-            DrawTextEx(
-                gs.fonte,
-                TextFormat("%d. %06d pts", i + 1, ranking[i].pontuacao),
-                (Vector2){ GetScreenWidth()/2 - 120, y },
-                14, 2, (Color){0,255,180,255}
-            );
-        } else {
-            // SEU DESIGN ORIGINAL DE VOLTA: Traços originais e fonte tamanho 14
-            DrawTextEx(
-                gs.fonte,
-                TextFormat("%d. ------ pts", i + 1),
-                (Vector2){ GetScreenWidth()/2 - 120, y },
-                14, 2, (Color){0,150,100,100} 
-            );
-        }
+
+    int statY = tvScreen.y + 80;
+    int statStep = 36;
+
+    const char *s1 = TextFormat("PONTUACAO: %06i", score);
+    const char *s2 = TextFormat("SINTONIA: %.1f%%", accuracy);
+    const char *s3 = TextFormat("SEQUENCIA: %i", maxCombo);
+
+    Vector2 s1Size = MeasureTextEx(gs.fonte, s1, 12, 2);
+    Vector2 s2Size = MeasureTextEx(gs.fonte, s2, 12, 2);
+    Vector2 s3Size = MeasureTextEx(gs.fonte, s3, 12, 2);
+
+    DrawTextEx(gs.fonte, s1, (Vector2){ cx - s1Size.x/2, statY              }, 12, 2, verde);
+    DrawTextEx(gs.fonte, s2, (Vector2){ cx - s2Size.x/2, statY + statStep   }, 12, 2, verde);
+    DrawTextEx(gs.fonte, s3, (Vector2){ cx - s3Size.x/2, statY + statStep*2 }, 12, 2, verde);
+
+    DrawLine(tvScreen.x + 20, statY + statStep*3 + 8,
+             tvScreen.x + tvScreen.width - 20, statY + statStep*3 + 8,
+             Fade(verde, 0.3f));
+
+
+    const char *hist = "MEMORIA DO MANGUE";
+    Vector2 hSize = MeasureTextEx(gs.fonte, hist, 12, 2);
+    DrawTextEx(gs.fonte, hist,
+        (Vector2){ cx - hSize.x/2, statY + statStep*3 + 22 },
+        12, 2, verde);
+
+    for(int i = 0; i < 5; i++) {
+        int y = statY + statStep*3 + 48 + (i * 22);
+
+        const char *linha = (i < totalPartidas)
+            ? TextFormat("%d. %06d pts", i+1, ranking[i].pontuacao)
+            : TextFormat("%d. ------ pts", i+1);
+
+        Vector2 lSize = MeasureTextEx(gs.fonte, linha, 10, 2);
+        DrawTextEx(gs.fonte, linha,
+            (Vector2){ cx - lSize.x/2, y },
+            10, 2,
+            i < totalPartidas ? verde : Fade(verde, 0.4f));
     }
 
-    Rectangle btnVoltar = { GetScreenWidth()/2 - 110, 610, 220, 50 };
+
+    Rectangle btnVoltar = { GetScreenWidth()/2 - 120, 690, 240, 50 };
     bool hover = CheckCollisionPointRec(GetMousePosition(), btnVoltar);
 
-    DrawRectangleRounded(btnVoltar, 0.3f, 8, hover ? (Color){0,180,255,255} : (Color){0,120,200,255});
-    DrawRectangleRoundedLinesEx(btnVoltar, 0.3f, 8, 3, (Color){180,255,255,255});
+    DrawRectangleRounded(btnVoltar, 0.2f, 6,
+        hover ? (Color){180,140,20,255} : (Color){120,90,10,255});
+    DrawRectangleRoundedLinesEx(btnVoltar, 0.2f, 6, 2, (Color){255,220,120,255});
 
-    Vector2 txt = MeasureTextEx(gs.fonte, "JOGAR DE NOVO", 14, 2);
-    DrawTextEx(gs.fonte, "JOGAR DE NOVO", (Vector2){ btnVoltar.x + btnVoltar.width/2 - txt.x/2, btnVoltar.y + 14 }, 14, 2, WHITE);
+    Vector2 txt = MeasureTextEx(gs.fonte, "JOGAR DE NOVO", 12, 2);
+    DrawTextEx(gs.fonte, "JOGAR DE NOVO",
+        (Vector2){ btnVoltar.x + btnVoltar.width/2 - txt.x/2, btnVoltar.y + 19 },
+        12, 2, WHITE);
 }

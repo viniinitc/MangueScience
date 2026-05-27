@@ -10,6 +10,15 @@ GameScreen currentScreen = SCREEN_MENU;
 GameState gs;
 
 
+int selectedPauseOption = 0;
+
+const char *pauseOptions[3] = {
+    "CONTINUAR",
+    "ESCOLHER MUSICA",
+    "MENU PRINCIPAL"
+};
+
+
 void getdirectionofball(int* val){
 
     int dir = GetRandomValue(1,4);
@@ -133,7 +142,6 @@ void deleteeverything(balls** head, balls** tail){
 
     while(n != NULL){
 
-        //UnloadTexture(n->sprite);
         balls* aux = n;
         n = n->next;
         free(aux);
@@ -143,17 +151,14 @@ void deleteeverything(balls** head, balls** tail){
     *tail = NULL;
 }
 
-//movimento das notas
-void moveballs(balls* ball, float speed)
-{
-    Vector2 center = {
-        GetScreenWidth()/2.0f,
-        GetScreenHeight()/2.0f
-    };
+
+void moveballs(balls* ball, float speed){
+
+    Vector2 centro = { GetScreenWidth() / 2.0f, GetScreenHeight() / 2.0f };
 
     Vector2 dir = {
-        center.x - ball->vect.x,
-        center.y - ball->vect.y
+        centro.x - ball->vect.x,
+        centro.y - ball->vect.y
     };
 
     float len = sqrtf(dir.x * dir.x + dir.y * dir.y);
@@ -166,8 +171,10 @@ void moveballs(balls* ball, float speed)
     ball->vect.x += dir.x * speed;
     ball->vect.y += dir.y * speed;
 
-    ball->rect.x = ball->vect.x;
-    ball->rect.y = ball->vect.y;
+    ball->rect.x = ball->vect.x - 32.0f;
+    ball->rect.y = ball->vect.y - 32.0f;
+    ball->rect.width = 64.0f;
+    ball->rect.height = 64.0f;
 }
 
 int counthitballs(balls* head){
@@ -229,6 +236,18 @@ int countlines(const char* path) {
     return count;
 }
 
+int countActiveNotes(balls* head) {
+    int count = 0;
+    balls* current = head;
+    while(current != NULL) {
+        if(current->check == 0) {
+            count++;
+        }
+        current = current->next;
+    }
+    return count;
+}
+
 
 int main (){
     
@@ -236,8 +255,8 @@ int main (){
     SetRandomSeed(10);
     
     
-    InitWindow(1240, 800, "Hello Raylib");
-    ToggleFullscreen();
+    InitWindow(1240, 800, "MANGUE SCIENCE");
+    // ToggleFullscreen();
     InitAudioDevice();
 
     int test[2];
@@ -253,10 +272,10 @@ int main (){
     RenderTexture2D target = LoadRenderTexture(1240, 800);
     SetTextureFilter(target.texture, TEXTURE_FILTER_BILINEAR);
 
-    SetWindowSize(monitorWidth, monitorHeight);
-    if (!IsWindowFullscreen()) {
-        ToggleFullscreen();
-    }
+    // SetWindowSize(monitorWidth, monitorHeight);
+    // if (!IsWindowFullscreen()) {
+    //     ToggleFullscreen();
+    // }
 
     SearchAndSetResourceDir("resources");
 
@@ -264,25 +283,25 @@ int main (){
 
     playlist[0].musica = LoadMusicStream("music/praieira.mp3");
     playlist[0].qntbeats = 452;
-    playlist[0].title = "Praieira - Chico Science & Nation Zumbi";
+    playlist[0].title = "Praieira";
     playlist[0].offset = 0.0f;
 
     playlist[1].musica = LoadMusicStream("music/maracatu_atomico.mp3");
     playlist[1].qntbeats = 380;
-    playlist[1].title = "Maracatu Atômico - Chico Science & Nation Zumbi";
+    playlist[1].title = "Maracatu Atomico";
 
     playlist[2].musica = LoadMusicStream("music/da_lama_ao_caos.mp3");
     playlist[2].qntbeats = 510;
-    playlist[2].title = "Da Lama ao Caos - Chico Science & Nation Zumbi";
+    playlist[2].title = "Da Lama ao Caos";
 
     playlist[3].musica = LoadMusicStream("music/manguetown.mp3");
     playlist[3].qntbeats = 452;
-    playlist[3].title = "Manguetown - Chico Science & Nation Zumbi";
+    playlist[3].title = "Manguetown";
     playlist[3].offset = 0.0f;
 
     playlist[4].musica = LoadMusicStream("music/rios_pontes_e_overdrives.mp3");
     playlist[4].qntbeats = 380;
-    playlist[4].title = "Rios, Pontes e Overdrives - Chico Science & Nation Zumbi";
+    playlist[4].title = "Rios, Pontes e Overdrives";
 
 
     const char* beatmaps[] = {
@@ -315,20 +334,24 @@ int main (){
     gs.skins[1] = LoadTexture("characters/skin2.png");
     gs.skins[2] = LoadTexture("characters/skin3.png");
 
-    // seleção
     gs.skinsSelect[0] = LoadTexture("characters/skin1_v2.png");
     gs.skinsSelect[1] = LoadTexture("characters/skin2.png");
     gs.skinsSelect[2] = LoadTexture("characters/skin3.png");
     gs.selectedSkin = 0;
 
-    gs.backgrounds[SCREEN_MENU] = LoadTexture("backgrounds/bg_menu.png");
-    gs.backgrounds[SCREEN_CHARACTER_SELECT] = LoadTexture("backgrounds/bg_character_select.png"); 
-    gs.backgrounds[SCREEN_GAMEPLAY] = LoadTexture("backgrounds/bg_gameplay.png");
-    gs.backgrounds[SCREEN_SCORE] = LoadTexture("backgrounds/bg_score.png");
+    gs.backgrounds[SCREEN_MENU]             = LoadTexture("backgrounds/bg_menu.png");
+    gs.backgrounds[SCREEN_CHARACTER_SELECT] = LoadTexture("backgrounds/bg_character_select.png");
+    gs.backgrounds[SCREEN_SONG_SELECT]      = LoadTexture("backgrounds/bg_song_select.png");
+    gs.backgrounds[BG_SCORE]                = LoadTexture("backgrounds/bg_score.png");
+
+    gs.backgrounds[BG_SKIN_0] = LoadTexture("backgrounds/bg_carangueijo.png");
+    gs.backgrounds[BG_SKIN_1] = LoadTexture("backgrounds/bg_crocoscience.png");
+    gs.backgrounds[BG_SKIN_2] = LoadTexture("backgrounds/bg_camarao.png");
+
+    Texture2D pauseRadio = LoadTexture("backgrounds/radio.png");
 
     gs.fonte = LoadFontEx("fonts/PressStart2P-Regular.ttf", 64, NULL, 0);
 
-    //posicao do jogador
     float pposx = screenwidth/2;
     float pposy = screenheight/2;
 
@@ -337,7 +360,6 @@ int main (){
     playerrect.x = pposx;
     playerrect.y = pposy;
 
-    //variaveis de onde o jogador vai apontar
     int up = 0;
     int down = 0;
     int right = 0;
@@ -358,16 +380,19 @@ int main (){
     float dummy1, dummy2;
     int dummy3;
     int next_note = 0;
+    float ultimo_spawn = -1.0f;
     int comboAtual = 0;
     int maxCombo = 0;
+    float comboTimer = 0.0f;
+    int ultimaDezenaMostrada = 0;
     int notasAcertadas = 0;
     int notasPassadas = 0;
 
     float dist_horizontal = GetScreenWidth() / 2.0f;
     float dist_vertical = GetScreenHeight() / 2.0f;
-    float ball_speed = 15.0f * 60.0f;
+    float ball_speed_base = 7.0f * 60.0f;
+    float ball_speed = ball_speed_base;
 
-    // game loop
 
     LoadRanking();
 
@@ -395,7 +420,7 @@ int main (){
             int result = UpdateSongSelect(totalSongs, &selectedSong);
 
             if(result >= 0) {
-                // carrega beatmap e muda de tela
+
                 deleteeverything(&head, &tail);
                     
                 if(beatmap_music != NULL) free(beatmap_music);
@@ -408,15 +433,42 @@ int main (){
                         TraceLog(LOG_ERROR, "Erro ao abrir beatmap: %s", beatmaps[selectedSong]);
                         currentScreen = SCREEN_SONG_SELECT;
                     } else {
+                        int real_notes = 0;
+
                         for(int i = 0; i < qtd_notes; i++) {
-                            fscanf(f, "%f %f %f %d", &beatmap_music[i], &dummy1, &dummy2, &dummy3);
+
+                            float tempo;
+                            float d1;
+                            float d2;
+                            int d3;
+
+                            fscanf(f, "%f %f %f %d",
+                                &tempo,
+                                &d1,
+                                &d2,
+                                &d3);
+
+                            if(i % 2 == 0){
+
+                                beatmap_music[real_notes] = tempo;
+
+                                real_notes++;
+                            }
                         }
+
+                        qtd_notes = real_notes;
                         fclose(f);
 
                         if(note_dirs != NULL) free(note_dirs);
                         note_dirs = malloc(qtd_notes * sizeof(int));
+
                         for(int i = 0; i < qtd_notes; i++){
-                            note_dirs[i] = GetRandomValue(1, 4);
+                            int nova_dir;
+                            do {
+                                nova_dir = GetRandomValue(1, 4);
+                            } while (i >= 2 && nova_dir == note_dirs[i - 1] && nova_dir == note_dirs[i - 2]); 
+
+                            note_dirs[i] = nova_dir;
                         }
 
                         next_note = 0;
@@ -428,12 +480,18 @@ int main (){
                         maxCombo = 0;
                         notasAcertadas = 0;
                         notasPassadas = 0;
+                        ball_speed = ball_speed_base;
                         currentScreen = SCREEN_GAMEPLAY;
                     }
             }
                    
         }
         else if (currentScreen == SCREEN_GAMEPLAY) {
+
+            if (IsKeyPressed(KEY_SPACE)) {
+                PauseMusicStream(playlist[selectedSong].musica);
+                currentScreen = SCREEN_PAUSED;
+            }
 
             
             if (!musicStarted) {
@@ -442,21 +500,32 @@ int main (){
                 musicStarted = true;            
             }
 
+            
             if(next_note < qtd_notes){
-
                 int dir = note_dirs[next_note];
-                float dist = (dir == 1 || dir == 2) ? dist_vertical : dist_horizontal;
-                float lead_time = dist / ball_speed;
-                float spawn_time = fmaxf(0.0f, beatmap_music[next_note] - lead_time);
+                float distance = 0.0f;
 
-                if(GetMusicTimePlayed(playlist[selectedSong].musica) >= spawn_time){
-                    createnextball(&head, &tail, 0, noteTextures[next_note % 3], dir);
-                    notasPassadas++;
-                    if(n == NULL) n = head;
-                    if(aux == NULL) aux = head;
-                    next_note++;
+                if(dir == 1 || dir == 2){ 
+                    distance = (GetScreenHeight() / 2.0f) - 80.0f;
+                } else { 
+                    distance = (GetScreenWidth() / 2.0f) - 80.0f;
                 }
 
+                float lead_time = distance / ball_speed;
+                float sync_offset = 0.2f;
+
+                float spawn_time = fmaxf(0.0f, beatmap_music[next_note] - lead_time + sync_offset);
+
+                if(GetMusicTimePlayed(playlist[selectedSong].musica) >= spawn_time){
+                    
+                    if(countActiveNotes(head) < 2 && (ultimo_spawn < 0.0f || (beatmap_music[next_note] - ultimo_spawn) >= 0.3f)){
+                        createnextball(&head, &tail, 0, noteTextures[next_note % 3], dir);
+                        ultimo_spawn = beatmap_music[next_note]; 
+                        if(n == NULL) n = head;
+                        if(aux == NULL) aux = head;
+                    }
+                    next_note++; 
+                }
             }
 
             if(IsKeyPressed(KEY_UP)) {
@@ -520,7 +589,7 @@ int main (){
             playertablet.height = 30;
             playertablet.width = 30;
 
-            float raio = 60.0f;
+            float raio = 80.0f;
 
             if(up){
                 playertablet.x = pposx - 15;
@@ -541,7 +610,6 @@ int main (){
 
             if(IsKeyPressed(KEY_BACKSPACE) && aux != NULL && aux->prev != NULL) aux = aux->prev;
 
-            // Mecânica de pausar a música integrada dinamicamente com a playlist
             if(IsMusicStreamPlaying(playlist[selectedSong].musica)) {
                 if(IsKeyPressed(KEY_ONE)) PauseMusicStream(playlist[selectedSong].musica);
             } else {
@@ -554,26 +622,59 @@ int main (){
                 if(n->next != NULL) n = n->next;
             }
 
-			if(n != NULL && (up || down || right || left) && CheckCollisionRecs(n->rect, playertablet) && n->check == 0){
-                PlaySound(hit);
-                n->check++;
-                pontuacaoAtual += 100;
+            balls* tempHit = head;
 
-                notasAcertadas++;
-                comboAtual++;
-                if(comboAtual > maxCombo) maxCombo = comboAtual;
+            while(tempHit != NULL){
+
+                if((up || down || right || left) &&
+                CheckCollisionRecs(tempHit->rect, playertablet) &&
+                tempHit->check == 0){
+
+                    PlaySound(hit);
+
+                    tempHit->check = 2;
+
+                    pontuacaoAtual += 100;
+
+                    notasAcertadas++;
+
+                    notasPassadas++;
+
+                    comboAtual++;
+
+                    if(comboAtual > maxCombo)
+                        maxCombo = comboAtual;
+
+                    ball_speed = ball_speed_base;
+
+                    float tempoAtual = GetMusicTimePlayed(playlist[selectedSong].musica);
+                    float tempoIdeal = beatmap_music[next_note];
+                    float diff = tempoAtual - tempoIdeal;
+                    TraceLog(LOG_INFO, "Sync: diff=%.3fs (+ atrasado, - adiantado)", diff);
+
+                    TraceLog(LOG_INFO, "COMBO: %d", comboAtual);
+                }
+
+                tempHit = tempHit->next;
             }
 
-			if(n != NULL && n->check == 0) {
+            balls* tempMiss = head;
+            while(tempMiss != NULL){
+                if(tempMiss->check == 0){
 
-                float dx = n->vect.x - pposx;
-                float dy = n->vect.y - pposy;
-                float distancia = sqrtf(dx*dx + dy*dy);
+                    float dx = tempMiss->vect.x - (GetScreenWidth() / 2.0f);
+                    float dy = tempMiss->vect.y - (GetScreenHeight() / 2.0f);
+                    float dist_ao_centro = sqrtf(dx*dx + dy*dy);
 
-                if(distancia <= 60.0f) {
-                    n->check++;
-                    if(n->next != NULL) n = n->next;
+
+                    if(dist_ao_centro <= 60.0f){
+                        comboAtual = 0;
+                        tempMiss->check = 1; 
+                        notasPassadas++; 
+                        ball_speed = ball_speed_base;
+                    }
                 }
+                tempMiss = tempMiss->next;
             }		
 
             if(n != NULL) {
@@ -584,6 +685,9 @@ int main (){
 
                     if (n->check == 0) { 
                         comboAtual = 0;
+                        notasPassadas++; 
+                        TraceLog(LOG_INFO, "RESET por saiu");
+                        ball_speed = ball_speed_base;
                     }
 
                     balls* remover = n;
@@ -597,14 +701,9 @@ int main (){
                 }
             }
 
-            // se n ficou preso na mesma nota que já saiu, tenta avançar
             if(n != NULL && n->check != 0 && n->next != NULL) {
                 n = n->next;
             }
-
-            // nota se mexendo e sendo destruida com segurança quando chega perto/colide com o jogador
-            
-
 
             float musicDuration = GetMusicTimeLength(playlist[selectedSong].musica);
             float musicPlayed  = GetMusicTimePlayed(playlist[selectedSong].musica);
@@ -615,8 +714,58 @@ int main (){
             } else {
                 UpdateMusicStream(playlist[selectedSong].musica);
             }
+
+            TraceLog(LOG_INFO, "FIM: acertadas=%d, passadas=%d, accuracy=%.1f%%, maxCombo=%d",
+            notasAcertadas,
+            notasPassadas,
+            notasPassadas > 0 ? ((float)notasAcertadas / notasPassadas) * 100.0f : 0.0f,
+            maxCombo);
             
         } 
+
+        else if (currentScreen == SCREEN_PAUSED) {
+
+
+            if (IsKeyPressed(KEY_DOWN)){
+                selectedPauseOption++;
+
+                if (selectedPauseOption > 2)
+                    selectedPauseOption = 0;
+            }
+
+            if (IsKeyPressed(KEY_UP)){
+                selectedPauseOption--;
+
+                if (selectedPauseOption < 0)
+                    selectedPauseOption = 2;
+            }
+
+
+            if (IsKeyPressed(KEY_ENTER)){
+                switch(selectedPauseOption){
+                    case 0:
+
+                        ResumeMusicStream(playlist[selectedSong].musica);
+                        currentScreen = SCREEN_GAMEPLAY;
+                        break;
+
+                    case 1:
+
+                        StopMusicStream(playlist[selectedSong].musica);
+                        musicStarted = false;
+                        deleteeverything(&head, &tail);
+                        next_note = 0;
+                        currentScreen = SCREEN_SONG_SELECT;
+                        break;
+
+                    case 2:
+
+                        currentScreen = SCREEN_MENU;
+                        break;
+                }
+            }
+        }
+
         else if(currentScreen == SCREEN_SCORE){
 
             int result = UpdateScoreSystem(pontuacaoAtual, playlist[selectedSong].title);
@@ -641,20 +790,22 @@ int main (){
 
             } 
             else if (currentScreen == SCREEN_GAMEPLAY){
-                
-                ClearBackground(WHITE);
 
-                DrawText("Hello Raylib", 200,200,20,WHITE);
+                int bgIndex = BG_SKIN_0 + gs.selectedSkin; 
 
-                if (IsMusicStreamPlaying(playlist[selectedSong].musica)) {
-                    DrawText(TextFormat("Tocando: %s", playlist[selectedSong].title), 300, 300, 20, GREEN);
-                }
+                ClearBackground(BLACK);
 
+                DrawTexturePro(
+                    gs.backgrounds[bgIndex],
+                    (Rectangle){ 0, 0, gs.backgrounds[bgIndex].width, gs.backgrounds[bgIndex].height },
+                    (Rectangle){ 0, 0, GetScreenWidth(), GetScreenHeight() },
+                    (Vector2){ 0, 0 },
+                    0.0f,
+                    WHITE
+                );
 
-                // Círculos concêntricos e alvos redondos no meio da tela
-                DrawCircle(pposx, pposy, 150, YELLOW);
-                DrawCircle(pposx, pposy, 100, GREEN);
-                DrawCircle(pposx, pposy, 60, BLUE);
+                float receptorRaio = 20.0f;
+                float distancia = 80.0f;
 
                 gs.frameCounter++;
                 if(gs.frameCounter >= (60/4)){
@@ -677,43 +828,127 @@ int main (){
                 DrawTexturePro(gs.skins[gs.selectedSkin], frameRec, destRec, (Vector2){0,0}, 0.0f, WHITE);
 
 
-				if(n != NULL){
-                    moveballs(n,ball_speed*GetFrameTime());
-                    n->outsiderect.height--;
-                    n->outsiderect.width--;	
-                    n->outsiderect.x = n->rect.x;
-                    n->outsiderect.y = n->rect.y;
-                }
-                	
+                int dezenaAtual = (comboAtual / 10) * 10;
 
-                if(aux != NULL) {
-                    if(aux->dir == 1) DrawText("cima", 400, 400, 20, WHITE);
-                    if(aux->dir == 2) DrawText("baixo", 400, 400, 20, WHITE);
-                    if(aux->dir == 3) DrawText("direita", 400, 400, 20, WHITE);
-                    if(aux->dir == 4) DrawText("esquerda", 400, 400, 20, WHITE);
+                if(dezenaAtual > 0 && dezenaAtual != ultimaDezenaMostrada) {
+                    ultimaDezenaMostrada = dezenaAtual;
+                    comboTimer = 4.0f; 
                 }
 
-				if(n != NULL && n->check == 0 && n->vect.x > 100 && n->vect.x < GetScreenWidth() - 100 && n->vect.y > 100 && n->vect.y < GetScreenHeight() - 100){
-                    float tamanho = 64.0f;
-                    DrawTexturePro(
-                        n->sprite,
-                        (Rectangle){ 0, 0, n->sprite.width, n->sprite.height },
-                        (Rectangle){ n->vect.x, n->vect.y, tamanho, tamanho },
-                        (Vector2){ tamanho/2, tamanho/2 },
-                        0.0f,
-                        WHITE
-                    );
-                }           
+                if(comboTimer > 0.0f) {
+                    comboTimer -= GetFrameTime();
+
+                    float pulse = 1.0f + 0.15f * sinf(comboTimer * 8.0f);
+                    int fontSize = (int)(40 * pulse);
+
+                    const char* texto = TextFormat("%dx COMBO!", ultimaDezenaMostrada);
+                    int textW = MeasureText(texto, fontSize);
+
+                    float t = comboTimer / 4.0f;
+                    Color cor = (Color){
+                        255,
+                        (unsigned char)(165 * t + 80 * (1 - t)),
+                        0,
+                        255
+                    };
+
+                    DrawText(texto, GetScreenWidth()/2 - textW/2, 60, fontSize, cor);
+                }
+
+                balls* tempMove = head;
+
+                while(tempMove != NULL){
+
+                    moveballs(tempMove, ball_speed * GetFrameTime());
+
+                    tempMove->outsiderect.height--;
+                    tempMove->outsiderect.width--;
+
+                    tempMove->outsiderect.x = tempMove->rect.x;
+                    tempMove->outsiderect.y = tempMove->rect.y;
+
+                    tempMove = tempMove->next;
+                }
+
+                balls* tempDraw = head;
+
+                while(tempDraw != NULL){
+
+                    if(tempDraw->check == 0){
+
+                        float tamanho = 64.0f;
+
+                        DrawTexturePro(
+                            tempDraw->sprite,
+                            (Rectangle){ 0, 0, tempDraw->sprite.width, tempDraw->sprite.height },
+                            (Rectangle){ tempDraw->vect.x, tempDraw->vect.y, tamanho, tamanho },
+                            (Vector2){ tamanho/2, tamanho/2 },
+                            0.0f,
+                            WHITE
+                        );
+                    }
+
+                    tempDraw = tempDraw->next;
+                }
 
                 if(up)DrawRectangleRec(playertablet, RED);
                 if(down)DrawRectangleRec(playertablet, RED);
                 if(right)DrawRectangleRec(playertablet, RED);
                 if(left)DrawRectangleRec(playertablet, RED);
-
                 
-                DrawCircleV(GetMousePosition(), 4, DARKGRAY);
-                DrawText(TextFormat("X: %i  Y: %i",GetMouseX(),GetMouseY()),GetMousePosition().x, GetMousePosition().y, 20, RED);
             }
+            
+            else if (currentScreen == SCREEN_PAUSED) {
+
+                int bgIndex = 5 + gs.selectedSkin;
+                DrawTexturePro(
+                    gs.backgrounds[bgIndex],
+                    (Rectangle){ 0, 0, gs.backgrounds[bgIndex].width, gs.backgrounds[bgIndex].height },
+                    (Rectangle){ 0, 0, GetScreenWidth(), GetScreenHeight() },
+                    (Vector2){ 0, 0 },
+                    0.0f,
+                    WHITE
+                );
+
+
+                DrawRectangle(0, 0, GetScreenWidth(), GetScreenHeight(), Fade(BLACK, 0.7f));
+
+                float scale = 0.55f;
+                int radioW = (int)(pauseRadio.width  * scale);
+                int radioH = (int)(pauseRadio.height * scale);
+                int radioX = GetScreenWidth()/2  - radioW/2;
+                int radioY = GetScreenHeight()/2 - radioH/2;
+
+                DrawTextureEx(pauseRadio, (Vector2){radioX, radioY}, 0.0f, scale, WHITE);
+
+
+                Color optionColor;
+                switch(selectedPauseOption) {
+                    case 0: optionColor = GREEN;  break;
+                    case 1: optionColor = YELLOW; break;
+                    case 2: optionColor = RED;    break;
+                    default: optionColor = WHITE; break;
+                }
+
+                const char *currentText = pauseOptions[selectedPauseOption];
+                int fontSize = 28;
+
+                float telaCentroX = radioX + (0.50f * radioW);
+                float telaCentroY = radioY + (0.54f * radioH);
+
+                int textWidth = MeasureText(currentText, fontSize);
+                int textX = (int)telaCentroX - textWidth/2;
+                int textY = (int)telaCentroY - fontSize/2;
+
+                for(int i = 0; i < 3; i++){
+                    Color cor = (i == selectedPauseOption) ? optionColor : (Color){80, 80, 80, 255};
+                    int itemY = textY - 30 + (i * 30);
+                    int itemW = MeasureText(pauseOptions[i], 20);
+                    DrawText(pauseOptions[i], GetScreenWidth()/2 - itemW/2, itemY, 20, cor);
+                }
+
+            }
+
             else if(currentScreen == SCREEN_SCORE){
 
                 float accuracyReal = 0.0f;
@@ -721,11 +956,7 @@ int main (){
                     accuracyReal = ((float)notasAcertadas / notasPassadas) * 100.0f;
                 }
 
-                DrawScoreSystem(
-                    pontuacaoAtual, 
-                    accuracyReal,   
-                    maxCombo        
-                );
+                DrawScoreSystem(pontuacaoAtual, accuracyReal, maxCombo);
 
             }
 
@@ -748,7 +979,7 @@ int main (){
         UnloadTexture(noteTextures[i]);
     }
 
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < 8; i++){
         UnloadTexture(gs.backgrounds[i]);
     }
 

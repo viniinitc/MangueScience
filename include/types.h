@@ -9,6 +9,7 @@ typedef enum GameScreen {
     SCREEN_CHARACTER_SELECT,
     SCREEN_SONG_SELECT, 
     SCREEN_GAMEPLAY,
+    SCREEN_PAUSED,
     SCREEN_SCORE 
 } GameScreen;
 
@@ -35,17 +36,22 @@ typedef struct GameState {
     Texture2D skins[3]; 
     Texture2D skinsSelect[3];
     int selectedSkin;
-    Texture2D backgrounds[5];
+    Texture2D backgrounds[9];
     Font fonte;
     int currentFrame;
     int frameCounter;
 } GameState;
 
-// 1. Modificamos a struct Partida para caber o nome da música
+
 typedef struct Partida {
     char nomeMusica[100]; 
     int pontuacao;
 } Partida;
+
+#define BG_SKIN_0 5
+#define BG_SKIN_1 6
+#define BG_SKIN_2 7
+#define BG_SCORE  8
 
 void DrawBackground(Texture2D texture);
 

@@ -5,7 +5,7 @@
 
 int main(){
 
-    // lista de músicas pra processar
+
     const int qtd_musicas = 5;
 
     const char* musicas[] = {
@@ -30,15 +30,14 @@ int main(){
 
     for (int i = 0; i < qtd_musicas; i++){
 
-        aubio_source_t *music = new_aubio_source(musicas[i], 44100, 256); //abre o audio
-        aubio_notes_t *notes = new_aubio_notes("default", 1024, 256, 44100); //detecta notas
+        aubio_source_t *music = new_aubio_source(musicas[i], 44100, 256);
+        aubio_notes_t *notes = new_aubio_notes("default", 1024, 256, 44100);
 
         uint_t frames_read = 0;
         uint_t total_frames = 0;
 
-        FILE *file_music = fopen(beatmaps[i], "w"); //arquivo p salvar o beatmap
+        FILE *file_music = fopen(beatmaps[i], "w"); 
 
-        //processando o audio frame p frame
         do{
 
             aubio_source_do(music, buffer, &frames_read);
@@ -47,12 +46,12 @@ int main(){
             total_frames += frames_read;
 
             if(velocity->data[0] > 0){
-                smpl_t pitch = velocity->data[0]; //a altura musical da nota
-                smpl_t volume = velocity->data[1]; // a intensidade da nota
+                smpl_t pitch = velocity->data[0];
+                smpl_t volume = velocity->data[1];
 
-                float timestamp = total_frames / 44100.0f; //diz quando a nota deve ser acertada
+                float timestamp = total_frames / 44100.0f;
 
-                int lane = (int)(pitch / 32.0f); // em qual das 4 colunas a nota vai cair
+                int lane = (int)(pitch / 32.0f);
 
                 fprintf(file_music, "%f %f %f %d\n", timestamp, pitch, volume, lane);
             }

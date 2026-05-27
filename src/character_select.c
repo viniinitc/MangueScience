@@ -51,99 +51,74 @@ void DrawCharacterSelect(void){
     const char* names[3] = {
         "Chico Caranguejo",
         "CrocoScience",
-        "Pitú Atômico"
+        "Pitu Atomico"
     };
 
-    Color nameColors[3] = {
-        RED,
-        GREEN,
-        ORANGE
-    };
+    Color nameColors[3] = { RED, GREEN, ORANGE };
 
     ClearBackground(BLACK);
-
     DrawBackground(gs.backgrounds[SCREEN_CHARACTER_SELECT]);
 
-    DrawText(
-        "ESCOLHA SEU PERSONAGEM",
-        GetScreenWidth()/2 - MeasureText("ESCOLHA SEU PERSONAGEM", 30)/2,
-        100,
-        30,
-        WHITE
-    );
+    DrawTextEx(gs.fonte, "ESCOLHA SEU PERSONAGEM",
+        (Vector2){ GetScreenWidth()/2 - MeasureTextEx(gs.fonte, "ESCOLHA SEU PERSONAGEM", 24, 2).x/2, 80 },
+        24, 2, WHITE);
 
-    int spacing = 150;
+    int prevSkin = (gs.selectedSkin - 1 + 3) % 3;
+    int nextSkin = (gs.selectedSkin + 1) % 3;
 
-    for(int i = 0; i < 3; i++){
-
-        Texture2D skin = gs.skinsSelect[i];
-
-        int frameWidth = skin.width / maxFrames;
+    {
+        Texture2D skin = gs.skinsSelect[prevSkin];
+        int frameWidth  = skin.width / maxFrames;
         int frameHeight = skin.height;
+        Rectangle frameRec = { currentFrame * frameWidth, 0, frameWidth, frameHeight };
+        float scale = 3.0f;
+        float charW = frameWidth  * scale;
+        float charH = frameHeight * scale;
+        float posX = GetScreenWidth()/2 - 350 - charW/2;
+        float posY = GetScreenHeight()/2 - charH/2;
 
-        Rectangle frameRec = {
-            currentFrame * frameWidth,
-            0,
-            frameWidth,
-            frameHeight
-        };
-
-        float scale = 4.0f;
-
-        float characterWidth = frameWidth * scale;
-        float totalWidth = (characterWidth * 3) + (spacing * 2);
-        float startX = GetScreenWidth()/2 - totalWidth/2;
-
-        Vector2 position = {
-            startX + (i * (characterWidth + spacing)),
-            GetScreenHeight()/2 - 120
-        };
-
-        Rectangle destRec = {
-            position.x,
-            position.y,
-            frameWidth * scale,
-            frameHeight * scale
-        };
-
-        DrawTexturePro(
-            skin,
-            frameRec,
-            destRec,
-            (Vector2){0,0},
-            0.0f,
-            WHITE
-        );
-
-        if(i == gs.selectedSkin){
-
-            DrawRectangleLinesEx(
-                (Rectangle){
-                    destRec.x - 10,
-                    destRec.y - 10,
-                    destRec.width + 20,
-                    destRec.height + 20
-                },
-                5,
-                WHITE
-            );
-
-            DrawText(
-                names[i],
-                GetScreenWidth()/2 - MeasureText(names[i], 40)/2,
-                600,
-                40,
-                nameColors[i]
-            );
-        }
-
+        DrawTexturePro(skin, frameRec,
+            (Rectangle){ posX, posY, charW, charH },
+            (Vector2){0,0}, 0.0f, Fade(WHITE, 0.5f));
     }
 
-    DrawText(
-        "Use <- e -> para trocar e ENTER para confirmar",
-        GetScreenWidth()/2 - MeasureText("Use <- e -> para trocar | ENTER para confirmar", 20)/2,
-        700,
-        20,
-        GRAY
-    );
+    
+        Texture2D skin = gs.skinsSelect[nextSkin];
+        int frameWidth  = skin.width / maxFrames;
+        int frameHeight = skin.height;
+        Rectangle frameRec = { currentFrame * frameWidth, 0, frameWidth, frameHeight };
+        float scale = 3.0f;
+        float charW = frameWidth  * scale;
+        float charH = frameHeight * scale;
+        float posX = GetScreenWidth()/2 + 350 - charW/2;
+        float posY = GetScreenHeight()/2 - charH/2;
+
+        DrawTexturePro(skin, frameRec,
+            (Rectangle){ posX, posY, charW, charH },
+            (Vector2){0,0}, 0.0f, Fade(WHITE, 0.5f));
+
+    {
+        Texture2D skin = gs.skinsSelect[gs.selectedSkin];
+        int frameWidth  = skin.width / maxFrames;
+        int frameHeight = skin.height;
+        Rectangle frameRec = { currentFrame * frameWidth, 0, frameWidth, frameHeight };
+        float scale = 6.0f;
+        float charW = frameWidth  * scale;
+        float charH = frameHeight * scale;
+        float posX = GetScreenWidth()/2 - charW/2;
+        float posY = GetScreenHeight()/2 - charH/2 - 20;
+
+        DrawTexturePro(skin, frameRec,
+            (Rectangle){ posX, posY, charW, charH },
+            (Vector2){0,0}, 0.0f, WHITE);
+
+
+        DrawTextEx(gs.fonte, names[gs.selectedSkin],
+            (Vector2){ GetScreenWidth()/2 - MeasureTextEx(gs.fonte, names[gs.selectedSkin], 28, 2).x/2, 620 },
+            28, 2, nameColors[gs.selectedSkin]);
+    }
+
+    DrawTextEx(gs.fonte, "Use <- e -> para trocar | ENTER para confirmar",
+        (Vector2){ GetScreenWidth()/2 - MeasureTextEx(gs.fonte, "Use <- e -> para trocar | ENTER para confirmar", 12, 2).x/2, 710 },
+        12, 2, GRAY);
 }
