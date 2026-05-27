@@ -12,7 +12,7 @@ Acesse a gameplay - [Clique aqui](https://drive.google.com/file/d/1SoiAiFkHP1Siq
 
 ## Como Compilar
 
-Certifique-se de ter o [Raylib](https://www.raylib.com) instalado, então:
+Certifique-se de possuir o [Raylib](https://www.raylib.com) instalado, então:
 
 **Mac**
 ```bash
