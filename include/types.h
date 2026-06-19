@@ -10,7 +10,10 @@ typedef enum GameScreen {
     SCREEN_SONG_SELECT, 
     SCREEN_GAMEPLAY,
     SCREEN_PAUSED,
-    SCREEN_SCORE 
+    SCREEN_SCORE,
+    SCREEN_TUTORIAL,
+    SCREEN_NAME_INPUT,
+    SCREEN_RANKING 
 } GameScreen;
 
 typedef struct songs {
@@ -36,7 +39,7 @@ typedef struct GameState {
     Texture2D skins[3]; 
     Texture2D skinsSelect[3];
     int selectedSkin;
-    Texture2D backgrounds[9];
+    Texture2D backgrounds[10];
     Font fonte;
     int currentFrame;
     int frameCounter;
@@ -44,7 +47,8 @@ typedef struct GameState {
 
 
 typedef struct Partida {
-    char nomeMusica[100]; 
+    char nomeMusica[100];
+    char nomeJogador[50];
     int pontuacao;
 } Partida;
 
@@ -52,21 +56,23 @@ typedef struct Partida {
 #define BG_SKIN_1 6
 #define BG_SKIN_2 7
 #define BG_SCORE  8
+#define BG_TUTORIAL 9 
 
 void DrawBackground(Texture2D texture);
 
-bool DrawMenu(void);
+int DrawMenu(Sound somConfirm);
 
-int UpdateSongSelect(int totalSongs, int* selectedSong, Sound somSelecao);
 void DrawSongSelect(songs playlist[], int totalSongs, int selectedSong);
+int UpdateSongSelect(int totalSongs, int* selectedSong, Sound somSelecao, Sound somConfirm);
 
-int UpdateCharacterSelect(Sound somSelecao);
+int UpdateCharacterSelect(Sound somSelecao, Sound somConfirm);
 void DrawCharacterSelect(void);
 
-// 2. Adicionamos as funções do TXT e modificamos o UpdateScoreSystem
 void LoadRanking(void);
 void SaveRanking(void);
-int UpdateScoreSystem(int pontuacaoAtual, const char* nomeDaMusica);
+int UpdateScoreSystem(int pontuacaoAtual, const char* nomeDaMusica, const char* nomeJogador);
+bool NomeExisteNoRanking(const char* nome);
+void DrawRankingScreen(songs playlist[], int totalSongs, Sound somConfirm);
 
 void DrawScoreSystem(
     int score,

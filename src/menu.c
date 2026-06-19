@@ -3,7 +3,7 @@
 
 extern GameState gs;
 
-bool DrawMenu(void) {
+int DrawMenu(Sound somConfirm) {
 
     ClearBackground(RAYWHITE);
 
@@ -46,45 +46,114 @@ bool DrawMenu(void) {
         WHITE);
 
 
-    Rectangle buttonRect = {
+    Rectangle playButton = {
         GetScreenWidth()/2 - 110,
-        GetScreenHeight()/2 + 120,
+        GetScreenHeight()/2 + 50,
+        220,
+        55
+    };
+
+    Rectangle tutorialButton = {
+        GetScreenWidth()/2 - 110,
+        GetScreenHeight()/2 + 130,
+        220,
+        55
+    };
+
+    Rectangle rankingButton = {
+        GetScreenWidth()/2 - 110,
+        GetScreenHeight()/2 + 210,
         220,
         55
     };
 
     Vector2 mousePos = GetMousePosition();
 
-    bool mouseOverButton = CheckCollisionPointRec(mousePos, buttonRect);
+    bool overPlay = CheckCollisionPointRec(mousePos, playButton);
+    bool overTutorial = CheckCollisionPointRec(mousePos, tutorialButton);
+    bool overRanking = CheckCollisionPointRec(mousePos, rankingButton);
 
-    bool clicou = false;
+    Color playColor = overPlay
+        ? (Color){180, 220, 255, 255}
+        : (Color){100, 110, 140, 255};
 
-    Color buttonColor = mouseOverButton
+    Color tutorialColor = overTutorial
+        ? (Color){180, 220, 255, 255}
+        : (Color){100, 110, 140, 255};
+
+    Color rankingColor = overRanking
         ? (Color){180, 220, 255, 255}
         : (Color){100, 110, 140, 255};
 
 
-    DrawRectangleRounded(buttonRect, 0.2f, 6, buttonColor);
-
-
-    DrawRectangleRoundedLinesEx(buttonRect, 0.2f, 6, 3, WHITE);
-
+    DrawRectangleRounded(playButton, 0.2f, 6, playColor);
+    DrawRectangleRoundedLinesEx(playButton, 0.2f, 6, 3, WHITE);
 
     Vector2 playText = MeasureTextEx(gs.fonte, "JOGAR", 20, 1);
 
-    DrawTextEx(gs.fonte,
+    DrawTextEx(
+        gs.fonte,
         "JOGAR",
         (Vector2){
-            buttonRect.x + buttonRect.width/2 - playText.x/2,
-            buttonRect.y + 16
+            playButton.x + playButton.width/2 - playText.x/2,
+            playButton.y + 16
         },
         20,
         1,
-        WHITE);
+        WHITE
+    );
 
-    if(mouseOverButton && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-        clicou = true;
+
+    Vector2 tutorialText = MeasureTextEx(gs.fonte, "TUTORIAL", 20, 1);
+
+    DrawRectangleRounded(tutorialButton, 0.2f, 6, tutorialColor);
+    DrawRectangleRoundedLinesEx(tutorialButton, 0.2f, 6, 3, WHITE);
+
+    DrawTextEx(
+        gs.fonte,
+        "TUTORIAL",
+        (Vector2){
+            tutorialButton.x + tutorialButton.width/2 - tutorialText.x/2,
+            tutorialButton.y + 16
+        },
+        20,
+        1,
+        WHITE
+    );
+
+
+    Vector2 rankingText = MeasureTextEx(gs.fonte, "RANKING", 20, 1);
+
+    DrawRectangleRounded(rankingButton, 0.2f, 6, rankingColor);
+    DrawRectangleRoundedLinesEx(rankingButton, 0.2f, 6, 3, WHITE);
+
+    DrawTextEx(
+        gs.fonte,
+        "RANKING",
+        (Vector2){
+            rankingButton.x + rankingButton.width/2 - rankingText.x/2,
+            rankingButton.y + 16
+        },
+        20,
+        1,
+        WHITE
+    );
+
+
+    if(overPlay && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        PlaySound(somConfirm);
+        return 1;
     }
 
-    return clicou;
+    if(overTutorial && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        PlaySound(somConfirm);
+        return 2;
+    }
+
+    if(overRanking && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+        PlaySound(somConfirm);
+        return 3;
+    }
+
+    return 0;
 }

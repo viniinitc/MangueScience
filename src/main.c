@@ -9,12 +9,17 @@
 GameScreen currentScreen = SCREEN_MENU;
 GameState gs;
 
+char nomeJogador[50] = "";
+int nomeLen = 0;
+bool nomeConfirmado = false;
+bool nomeJaExiste = false;
 
 int selectedPauseOption = 0;
 
-const char *pauseOptions[3] = {
+const char *pauseOptions[4] = {
     "CONTINUAR",
     "ESCOLHER MUSICA",
+    "TROCAR PERSONAGEM",
     "MENU PRINCIPAL"
 };
 
@@ -216,6 +221,7 @@ int main (){
     
     
     InitWindow(1240, 800, "MANGUE SCIENCE");
+    SetExitKey(KEY_NULL);
     // ToggleFullscreen();
     InitAudioDevice();
 
@@ -278,7 +284,11 @@ int main (){
 
 	Sound somAcerto = LoadSound("music/som_acerto.mp3");
     Sound somErro   = LoadSound("music/som_erro.mp3");
+    SetSoundVolume(somAcerto, 0.4f); 
+    SetSoundVolume(somErro, 0.4f);
+
     Sound somSelecao = LoadSound("music/som_selecao.mp3");
+    Sound somConfirm = LoadSound("music/confirm.mp3");
 
     balls* head = NULL;
     balls* tail = NULL;
@@ -309,6 +319,8 @@ int main (){
     gs.backgrounds[BG_SKIN_0] = LoadTexture("backgrounds/bg_carangueijo.png");
     gs.backgrounds[BG_SKIN_1] = LoadTexture("backgrounds/bg_crocoscience.png");
     gs.backgrounds[BG_SKIN_2] = LoadTexture("backgrounds/bg_camarao.png");
+    gs.backgrounds[BG_TUTORIAL] = LoadTexture("backgrounds/bg_tutorial.png");
+
 
     Texture2D pauseRadio = LoadTexture("backgrounds/radio.png");
 
@@ -337,7 +349,7 @@ int main (){
     aux = head;
     n = head;
 
-    bool menuButtonClicked = false;
+    int menuOption = 0;
 	Rectangle playertablet;
 
 
@@ -367,15 +379,24 @@ int main (){
 
         if (currentScreen == SCREEN_MENU) {
 
-            if (IsKeyPressed(KEY_ENTER) || menuButtonClicked) {
-                currentScreen = SCREEN_CHARACTER_SELECT;;
-                menuButtonClicked = false;
+            switch(menuOption){
+                case 1:
+                    currentScreen = SCREEN_NAME_INPUT;
+                    break;
+                case 2:
+                    currentScreen = SCREEN_TUTORIAL;
+                    break;
+                case 3:
+                    currentScreen = SCREEN_RANKING;
+                    break;
             }
+
+            menuOption = 0;
 
         } 
         else if(currentScreen == SCREEN_CHARACTER_SELECT){
 
-            int result = UpdateCharacterSelect(somSelecao);
+            int result = UpdateCharacterSelect(somSelecao, somConfirm);
 
             if(result == 1){
                 currentScreen = SCREEN_SONG_SELECT;
@@ -384,9 +405,13 @@ int main (){
         }
         else if(currentScreen == SCREEN_SONG_SELECT){
 
-            int result = UpdateSongSelect(totalSongs, &selectedSong, somSelecao);
+            int result = UpdateSongSelect(totalSongs, &selectedSong, somSelecao, somConfirm);
 
-            if(result >= 0) {
+            if (result == -2) {
+                currentScreen = SCREEN_CHARACTER_SELECT;
+            }
+
+            else if(result >= 0) {
 
                 deleteeverything(&head, &tail);
                     
@@ -695,28 +720,32 @@ int main (){
             if (IsKeyPressed(KEY_DOWN)){
                 selectedPauseOption++;
 
-                if (selectedPauseOption > 2)
+                if (selectedPauseOption > 3)
                     selectedPauseOption = 0;
+
+                PlaySound(somSelecao);
             }
 
             if (IsKeyPressed(KEY_UP)){
                 selectedPauseOption--;
 
                 if (selectedPauseOption < 0)
-                    selectedPauseOption = 2;
+                    selectedPauseOption = 3;
+
+                PlaySound(somSelecao);
             }
 
 
             if (IsKeyPressed(KEY_ENTER)){
+                PlaySound(somConfirm);
+
                 switch(selectedPauseOption){
                     case 0:
-
                         ResumeMusicStream(playlist[selectedSong].musica);
                         currentScreen = SCREEN_GAMEPLAY;
                         break;
 
                     case 1:
-
                         StopMusicStream(playlist[selectedSong].musica);
                         musicStarted = false;
                         deleteeverything(&head, &tail);
@@ -725,7 +754,18 @@ int main (){
                         break;
 
                     case 2:
+                        StopMusicStream(playlist[selectedSong].musica);
+                        musicStarted = false;
+                        deleteeverything(&head, &tail);
+                        next_note = 0;
+                        currentScreen = SCREEN_CHARACTER_SELECT;
+                        break;
 
+                    case 3:
+                        StopMusicStream(playlist[selectedSong].musica);
+                        musicStarted = false;
+                        deleteeverything(&head, &tail);
+                        next_note = 0;
                         currentScreen = SCREEN_MENU;
                         break;
                 }
@@ -734,16 +774,36 @@ int main (){
 
         else if(currentScreen == SCREEN_SCORE){
 
-            int result = UpdateScoreSystem(pontuacaoAtual, playlist[selectedSong].title);
+            int result = UpdateScoreSystem(pontuacaoAtual, playlist[selectedSong].title, nomeJogador);
             if(result == 1) currentScreen = SCREEN_MENU;
 
+        }
+
+        else if (currentScreen == SCREEN_NAME_INPUT) {
+
+            int key = GetCharPressed();
+            while (key > 0) {
+                if (key >= 32 && key <= 125 && nomeLen < 49) {
+                    nomeJogador[nomeLen] = (char)key;
+                    nomeLen++;
+                    nomeJogador[nomeLen] = '\0';
+                    nomeJaExiste = NomeExisteNoRanking(nomeJogador);
+                }
+                key = GetCharPressed();
+            }
+
+            if (IsKeyPressed(KEY_BACKSPACE) && nomeLen > 0) {
+                nomeLen--;
+                nomeJogador[nomeLen] = '\0';
+                nomeJaExiste = NomeExisteNoRanking(nomeJogador);
+            }
         }
 
 
         BeginDrawing();
 
             if (currentScreen == SCREEN_MENU) {
-                menuButtonClicked = DrawMenu();
+                menuOption = DrawMenu(somConfirm);
             } 
             else if(currentScreen == SCREEN_CHARACTER_SELECT){
 
@@ -904,7 +964,8 @@ int main (){
                 switch(selectedPauseOption) {
                     case 0: optionColor = GREEN;  break;
                     case 1: optionColor = YELLOW; break;
-                    case 2: optionColor = RED;    break;
+                    case 2: optionColor = ORANGE;   break;
+                    case 3: optionColor = RED;    break;
                     default: optionColor = WHITE; break;
                 }
 
@@ -918,9 +979,9 @@ int main (){
                 int textX = (int)telaCentroX - textWidth/2;
                 int textY = (int)telaCentroY - fontSize/2;
 
-                for(int i = 0; i < 3; i++){
+                for(int i = 0; i < 4; i++){
                     Color cor = (i == selectedPauseOption) ? optionColor : (Color){80, 80, 80, 255};
-                    int itemY = textY - 30 + (i * 30);
+                    int itemY = textY - 35 + (i * 25);
                     int itemW = MeasureText(pauseOptions[i], 20);
                     DrawText(pauseOptions[i], GetScreenWidth()/2 - itemW/2, itemY, 20, cor);
                 }
@@ -936,9 +997,135 @@ int main (){
 
                 DrawScoreSystem(pontuacaoAtual, accuracyReal, maxCombo);
 
+            } 
+            
+            else if(currentScreen == SCREEN_TUTORIAL){
+
+                DrawTexturePro(
+                    gs.backgrounds[BG_TUTORIAL],
+                    (Rectangle){ 0, 0, gs.backgrounds[BG_TUTORIAL].width, gs.backgrounds[BG_TUTORIAL].height },
+                    (Rectangle){ 0, 0, GetScreenWidth(), GetScreenHeight() },
+                    (Vector2){ 0, 0 },
+                    0.0f,
+                    WHITE
+                );
+
+                int centerX = GetScreenWidth() / 2;
+
+                DrawText("COMO JOGAR", centerX - MeasureText("COMO JOGAR", 40)/2, 180, 40, WHITE);
+                DrawText("AS NOTAS VIRAO DAS 4 DIRECOES", centerX - MeasureText("AS NOTAS VIRAO DAS 4 DIRECOES", 22)/2, 240, 22, GREEN);
+
+                float scale = 0.08f;
+                int iconSize = (int)(setaCima.width * scale);
+                int totalRowWidth = iconSize + 20 + MeasureText("SETA ESQUERDA", 28);
+                int col1X = centerX - totalRowWidth / 2;
+                int col2X = col1X + iconSize + 20;
+                int startY = 270;
+                int spacing = 65;
+
+                DrawTextureEx(setaCima,     (Vector2){col1X, startY + spacing*0}, 0.0f, scale, WHITE);
+                DrawText("SETA CIMA",      col2X, startY + spacing*0 + iconSize/2 - 14, 28, WHITE);
+
+                DrawTextureEx(setaBaixo,    (Vector2){col1X, startY + spacing*1}, 0.0f, scale, WHITE);
+                DrawText("SETA BAIXO",     col2X, startY + spacing*1 + iconSize/2 - 14, 28, WHITE);
+
+                DrawTextureEx(setaDireita,  (Vector2){col1X, startY + spacing*2}, 0.0f, scale, WHITE);
+                DrawText("SETA DIREITA",   col2X, startY + spacing*2 + iconSize/2 - 14, 28, WHITE);
+
+                DrawTextureEx(setaEsquerda, (Vector2){col1X, startY + spacing*3}, 0.0f, scale, WHITE);
+                DrawText("SETA ESQUERDA",  col2X, startY + spacing*3 + iconSize/2 - 14, 28, WHITE);
+
+                int afterArrows = startY + spacing*4;
+                const char* instrucao = "APERTE A SETA QUANDO A NOTA CHEGAR AO PERSONAGEM";
+                DrawText(instrucao, centerX - MeasureText(instrucao, 16)/2, afterArrows + 20, 16, YELLOW);
+
+                const char* pausa = "APERTE A TECLA ESPACO PARA PAUSAR O JOGO";
+                DrawText(pausa, centerX - MeasureText(pausa, 16)/2, afterArrows + 40, 16, WHITE);
+
+                Rectangle voltarButton = {
+                    GetScreenWidth()/2 - 110,
+                    680,
+                    220,
+                    55
+                };
+
+                Vector2 mousePos = GetMousePosition();
+                bool overVoltar = CheckCollisionPointRec(mousePos, voltarButton);
+
+                Color verdeOliva      = (Color){85, 107, 47, 255};
+                Color verdeOlivaHover = (Color){120, 150, 60, 255};
+
+                Color voltarColor = overVoltar ? verdeOlivaHover : verdeOliva;
+
+                DrawRectangleRounded(voltarButton, 0.2f, 6, voltarColor);
+                DrawRectangleRoundedLinesEx(voltarButton, 0.2f, 6, 3, WHITE);
+
+                Vector2 voltarText = MeasureTextEx(gs.fonte, "VOLTAR", 20, 1);
+                DrawTextEx(gs.fonte, "VOLTAR",
+                    (Vector2){
+                        voltarButton.x + voltarButton.width/2 - voltarText.x/2,
+                        voltarButton.y + 16
+                    },
+                    20, 1, WHITE);
+
+                if(overVoltar && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)){
+                    PlaySound(somConfirm); 
+                    currentScreen = SCREEN_MENU;
+                }
             }
 
+            else if (currentScreen == SCREEN_NAME_INPUT) {
 
+                DrawTexturePro(
+                    gs.backgrounds[SCREEN_MENU],
+                    (Rectangle){0, 0, gs.backgrounds[SCREEN_MENU].width, gs.backgrounds[SCREEN_MENU].height},
+                    (Rectangle){0, 0, GetScreenWidth(), GetScreenHeight()},
+                    (Vector2){0, 0}, 0.0f, WHITE
+                );
+
+                int cx = GetScreenWidth() / 2;
+
+                DrawText("DIGITE SEU NOME", cx - MeasureText("DIGITE SEU NOME", 30)/2, 280, 30, WHITE);
+
+                Rectangle inputBox = { cx - 200, 340, 400, 55 };
+                DrawRectangleRounded(inputBox, 0.2f, 6, (Color){30, 30, 30, 200});
+                DrawRectangleRoundedLinesEx(inputBox, 0.2f, 6, 2, nomeJaExiste ? RED : WHITE);
+
+                DrawText(nomeJogador, cx - MeasureText(nomeJogador, 28)/2, 354, 28, WHITE);
+
+                if ((int)(GetTime() * 2) % 2 == 0) {
+                    int cursorX = cx + MeasureText(nomeJogador, 28)/2 + 4;
+                    DrawText("|", cursorX, 354, 28, WHITE);
+                }
+
+                if (nomeJaExiste) {
+                    const char* aviso = "ESSE NOME JA EXISTE NO RANKING!";
+                    DrawText(aviso, cx - MeasureText(aviso, 18)/2, 415, 18, RED);
+                }
+
+                if (nomeLen > 0) {
+                    Rectangle btnOk = { cx - 110, 520, 220, 55 };
+                    bool hover = CheckCollisionPointRec(GetMousePosition(), btnOk);
+
+                    DrawRectangleRounded(btnOk, 0.2f, 6, hover ? (Color){120,150,60,255} : (Color){85,107,47,255});
+                    DrawRectangleRoundedLinesEx(btnOk, 0.2f, 6, 3, WHITE);
+
+                    Vector2 okText = MeasureTextEx(gs.fonte, "CONFIRMAR", 18, 1);
+                    DrawTextEx(gs.fonte, "CONFIRMAR",
+                        (Vector2){ btnOk.x + btnOk.width/2 - okText.x/2, btnOk.y + 16 },
+                        18, 1, WHITE);
+
+                    if (hover && IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                        PlaySound(somConfirm);
+                        currentScreen = SCREEN_CHARACTER_SELECT;
+                    }
+                }
+            }
+
+            else if (currentScreen == SCREEN_RANKING) {
+                DrawRankingScreen(playlist, totalSongs, somConfirm);
+            }
+        
         EndDrawing();
     }
 
@@ -957,7 +1144,7 @@ int main (){
         UnloadTexture(noteTextures[i]);
     }
 
-    for(int i = 0; i < 9; i++){
+    for(int i = 0; i < 10; i++){
         UnloadTexture(gs.backgrounds[i]);
     }
 
@@ -974,6 +1161,7 @@ int main (){
     UnloadSound(somAcerto);
     UnloadSound(somErro);
     UnloadSound(somSelecao); 
+    UnloadSound(somConfirm);
 
     deleteeverything(&head, &tail);
 

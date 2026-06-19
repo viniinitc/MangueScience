@@ -9,7 +9,7 @@ static int frameSpeed = 4;
 
 static int maxFrames = 16;
 
-int UpdateCharacterSelect(Sound somSelecao){
+int UpdateCharacterSelect(Sound somSelecao, Sound somConfirm){
 
     if(IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT)) {
         PlaySound(somSelecao);
@@ -44,6 +44,7 @@ int UpdateCharacterSelect(Sound somSelecao){
     }
 
     if(IsKeyPressed(KEY_ENTER)){
+        PlaySound(somConfirm);
         return 1;
     }
 

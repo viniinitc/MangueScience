@@ -18,6 +18,7 @@ Certifique-se de possuir o [Raylib](https://www.raylib.com) instalado, então:
 ```bash
 cd build
 ./premake5.osx gmake
+cd ..
 make
 ./game.sh
 ```

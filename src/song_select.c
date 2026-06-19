@@ -5,7 +5,7 @@
 extern GameScreen currentScreen;
 extern GameState gs;
 
-int UpdateSongSelect(int totalSongs, int* selectedSong, Sound somSelecao){
+int UpdateSongSelect(int totalSongs, int* selectedSong, Sound somSelecao, Sound somConfirm) {
 
     if(IsKeyPressed(KEY_LEFT) || IsKeyPressed(KEY_RIGHT) ||
        IsKeyPressed(KEY_UP)   || IsKeyPressed(KEY_DOWN)) {
@@ -20,10 +20,15 @@ int UpdateSongSelect(int totalSongs, int* selectedSong, Sound somSelecao){
     }
 
     if (IsKeyPressed(KEY_ENTER)) {
+        PlaySound(somConfirm);
         return *selectedSong;
     }
-    return -1;
 
+    if (IsKeyPressed(KEY_ESCAPE)) {
+        return -2;
+    }
+
+    return -1;
 }
 
 void DrawSongSelect(songs playlist[], int totalSongs, int selectedSong){
@@ -75,8 +80,8 @@ void DrawSongSelect(songs playlist[], int totalSongs, int selectedSong){
         }
     }
 
-    const char* instrucao = "SETAS navegar | ENTER confirmar";
+    const char* instrucao = "SETAS navegar | ENTER confirmar | ESC voltar";
     Vector2 instrSize = MeasureTextEx(gs.fonte, instrucao, 11, 2);
     DrawTextEx(gs.fonte, instrucao,
-        (Vector2){ tvX + tvW/2 - instrSize.x/2, tvY + tvH - 60 }, 11, 2, GRAY);
+        (Vector2){ tvX + margem, tvY + tvH - 60 }, 9, 2, GRAY);
 }
